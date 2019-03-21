@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Test suite for gfunction module.
 """
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
 import unittest
 
@@ -14,11 +14,11 @@ class TestUniformHeatExtractionRate(unittest.TestCase):
     """
 
     def setUp(self):
-        self.H = 150.           # Borehole length [m]
-        self.D = 4.             # Borehole buried depth [m]
-        self.r_b = 0.075        # Borehole radius [m]
-        self.B = 7.5            # Borehole spacing [m]
-        self.alpha = 1.0e-6     # Ground thermal diffusivity [m2/s]
+        self.H = 150.  # Borehole length [m]
+        self.D = 4.  # Borehole buried depth [m]
+        self.r_b = 0.075  # Borehole radius [m]
+        self.B = 7.5  # Borehole spacing [m]
+        self.alpha = 1.0e-6  # Ground thermal diffusivity [m2/s]
 
     def test_one_borehole(self, rel_tol=1.0e-4):
         """ Tests the value of the g-function of one borehole.
@@ -27,7 +27,7 @@ class TestUniformHeatExtractionRate(unittest.TestCase):
         from pygfunction.boreholes import rectangle_field
 
         # Results of Cimmino and Bernier (2014)
-        time = np.array([1070, 33554478])*3600.
+        time = np.array([1070, 33554478]) * 3600.
         g_ref = np.array([3.65501492640735,
                           6.68675948788837])
 
@@ -49,7 +49,7 @@ class TestUniformHeatExtractionRate(unittest.TestCase):
         from pygfunction.boreholes import rectangle_field
 
         # Results of Cimmino and Bernier (2014)
-        time = np.array([1070, 33554478])*3600.
+        time = np.array([1070, 33554478]) * 3600.
         g_ref = np.array([3.66173047944222,
                           16.0243474955568])
 
@@ -71,11 +71,11 @@ class TestUniformTemperature(unittest.TestCase):
     """
 
     def setUp(self):
-        self.H = 150.           # Borehole length [m]
-        self.D = 4.             # Borehole buried depth [m]
-        self.r_b = 0.075        # Borehole radius [m]
-        self.B = 7.5            # Borehole spacing [m]
-        self.alpha = 1.0e-6     # Ground thermal diffusivity [m2/s]
+        self.H = 150.  # Borehole length [m]
+        self.D = 4.  # Borehole buried depth [m]
+        self.r_b = 0.075  # Borehole radius [m]
+        self.B = 7.5  # Borehole spacing [m]
+        self.alpha = 1.0e-6  # Ground thermal diffusivity [m2/s]
 
     def test_one_borehole_one_segment(self, rel_tol=1.0e-4):
         """ Tests the value of the g-function of one borehole.
@@ -84,7 +84,7 @@ class TestUniformTemperature(unittest.TestCase):
         from pygfunction.boreholes import rectangle_field
 
         # Results of Cimmino and Bernier (2014)
-        time = np.array([1070, 33554478])*3600.
+        time = np.array([1070, 33554478]) * 3600.
         g_ref = np.array([3.65502692098609,
                           6.68675948788828])
 
@@ -106,7 +106,7 @@ class TestUniformTemperature(unittest.TestCase):
         from pygfunction.boreholes import rectangle_field
 
         # Results of Cimmino and Bernier (2014)
-        time = np.array([1070, 33554478])*3600.
+        time = np.array([1070, 33554478]) * 3600.
         g_ref = np.array([3.6617432932388,
                           15.9710298219412])
 
@@ -128,7 +128,7 @@ class TestUniformTemperature(unittest.TestCase):
         from pygfunction.boreholes import rectangle_field
 
         # Results of Cimmino and Bernier (2014)
-        time = np.array([1070, 33554478])*3600.
+        time = np.array([1070, 33554478]) * 3600.
         g_ref = np.array([3.65476902065229,
                           6.6329923757352])
 
@@ -150,7 +150,7 @@ class TestUniformTemperature(unittest.TestCase):
         from pygfunction.boreholes import rectangle_field
 
         # Results of Cimmino and Bernier (2014)
-        time = 33554478*3600.
+        time = 33554478 * 3600.
         g_ref = 15.1697321426028
 
         # Calculation of the g-function at the same time values
@@ -171,14 +171,14 @@ class TestEqualInletTemperature(unittest.TestCase):
     """
 
     def setUp(self):
-        self.H = 150.           # Borehole length [m]
-        self.D = 4.             # Borehole buried depth [m]
-        self.r_b = 0.075        # Borehole radius [m]
-        self.B = 7.5            # Borehole spacing [m]
-        self.alpha = 1.0e-6     # Ground thermal diffusivity [m2/s]
-        self.k_s = 2.0          # Ground thermal conductivity [W/m.K]
-        self.m_flow = 0.5       # Fluid mass flow rate (per borehole) [kg/s]
-        self.cp = 4000.         # Fluid specific heat capacity [J/kg.K]
+        self.H = 150.  # Borehole length [m]
+        self.D = 4.  # Borehole buried depth [m]
+        self.r_b = 0.075  # Borehole radius [m]
+        self.B = 7.5  # Borehole spacing [m]
+        self.alpha = 1.0e-6  # Ground thermal diffusivity [m2/s]
+        self.k_s = 2.0  # Ground thermal conductivity [W/m.K]
+        self.m_flow = 0.5  # Fluid mass flow rate (per borehole) [kg/s]
+        self.cp = 4000.  # Fluid specific heat capacity [J/kg.K]
 
     def test_one_borehole_twenty_four_segments(self, rel_tol=1.0e-4):
         """ Tests the value of the g-function of one borehole.
@@ -215,15 +215,15 @@ class TestEqualInletTemperature(unittest.TestCase):
         for i in range(len(Rb)):
             UTubes = [SingleUTube(
                     pos, r_in, r_out, borehole, self.k_s, k_g, 0., J=0)
-                      for borehole in boreField]
+                for borehole in boreField]
             # Overwrite borehole resistances
-            Rd_00 = 2*Rb[i]
-            Rd_01 = 2*Ra*Rd_00/(2*Rd_00 - Ra)
+            Rd_00 = 2 * Rb[i]
+            Rd_01 = 2 * Ra * Rd_00 / (2 * Rd_00 - Ra)
             for UTube in UTubes:
-                UTube._Rd[0,0] = Rd_00
-                UTube._Rd[1,1] = Rd_00
-                UTube._Rd[0,1] = Rd_01
-                UTube._Rd[1,0] = Rd_01
+                UTube._Rd[0, 0] = Rd_00
+                UTube._Rd[1, 1] = Rd_00
+                UTube._Rd[0, 1] = Rd_01
+                UTube._Rd[1, 0] = Rd_01
                 UTube._update_model_variables(self.m_flow, self.cp, nSegments)
             g[i] = equal_inlet_temperature(boreField, UTubes, self.m_flow,
                                            self.cp, time, self.alpha,
@@ -267,27 +267,28 @@ class TestEqualInletTemperature(unittest.TestCase):
         g = np.zeros_like(g_ref)
         UTubes = [SingleUTube(
                 pos, r_in, r_out, borehole, self.k_s, k_g, 0., J=0)
-                  for borehole in boreField]
+            for borehole in boreField]
         # Overwrite borehole resistances
-        Rd_00 = 2*Rb
-        Rd_01 = 2*Ra*Rd_00/(2*Rd_00 - Ra)
+        Rd_00 = 2 * Rb
+        Rd_01 = 2 * Ra * Rd_00 / (2 * Rd_00 - Ra)
         for UTube in UTubes:
-            UTube._Rd[0,0] = Rd_00
-            UTube._Rd[1,1] = Rd_00
-            UTube._Rd[0,1] = Rd_01
-            UTube._Rd[1,0] = Rd_01
+            UTube._Rd[0, 0] = Rd_00
+            UTube._Rd[1, 1] = Rd_00
+            UTube._Rd[0, 1] = Rd_01
+            UTube._Rd[1, 0] = Rd_01
             UTube._update_model_variables(self.m_flow, self.cp, nSegments)
         g = equal_inlet_temperature(boreField, UTubes, self.m_flow,
-                                       self.cp, time, self.alpha,
-                                       nSegments=nSegments)
+                                    self.cp, time, self.alpha,
+                                    nSegments=nSegments)
 
         self.assertTrue(np.allclose(g, g_ref, rtol=rel_tol, atol=1e-10),
                         msg='Incorrect values of the g-function of four by '
                             'four field for equal inlet fluid temperature '
                             '(24 segments).')
-        
-        
+
+
 if __name__ == '__main__' and __package__ is None:
     from os import sys, path
+
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
     unittest.main()

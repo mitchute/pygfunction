@@ -1,15 +1,19 @@
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
+import time as tim
 from functools import partial
 from multiprocessing import Pool
+from typing import Union
+
 import numpy as np
 from scipy.integrate import quad
 from scipy.special import erf
-import time as tim
+
+from .boreholes import Borehole
 
 
-def finite_line_source(
-        time, alpha, borehole1, borehole2, reaSource=True, imgSource=True):
+def finite_line_source(time: float, alpha: float, borehole1: Borehole, borehole2: Borehole,
+                       reaSource: bool = True, imgSource: bool = True):
     """
     Evaluate the Finite Line Source (FLS) solution.
 
@@ -71,6 +75,7 @@ def finite_line_source(
 
     Examples
     --------
+    >>> import pygfunction as gt
     >>> b1 = gt.boreholes.Borehole(H=150., D=4., r_b=0.075, x=0., y=0.)
     >>> b2 = gt.boreholes.Borehole(H=150., D=4., r_b=0.075, x=5., y=0.)
     >>> h = gt.heat_transfer.finite_line_source(4*168*3600., 1.0e-6, b1, b2)
@@ -86,40 +91,39 @@ def finite_line_source(
        fields. International Journal of Heat and Mass Transfer, 70, 641-650.
 
     """
+
     def _Ils(s, b1, b2, reaSource, imgSource):
         r = b1.distance(b2)
         func = 0.
         # Function to integrate
         if reaSource:
             # Real part of the FLS solution
-            func += _erfint((b2.D - b1.D + b2.H)*s)
-            func += -_erfint((b2.D - b1.D)*s)
-            func += _erfint((b2.D - b1.D - b1.H)*s)
-            func += -_erfint((b2.D - b1.D + b2.H - b1.H)*s)
+            func += _erfint((b2.D - b1.D + b2.H) * s)
+            func += -_erfint((b2.D - b1.D) * s)
+            func += _erfint((b2.D - b1.D - b1.H) * s)
+            func += -_erfint((b2.D - b1.D + b2.H - b1.H) * s)
         if imgSource:
             # Image part of the FLS solution
-            func += _erfint((b2.D + b1.D + b2.H)*s)
-            func += -_erfint((b2.D + b1.D)*s)
-            func += _erfint((b2.D + b1.D + b1.H)*s)
-            func += -_erfint((b2.D + b1.D + b2.H + b1.H)*s)
-        return 0.5 / (b2.H*s**2) * func * np.exp(-r**2*s**2)
+            func += _erfint((b2.D + b1.D + b2.H) * s)
+            func += -_erfint((b2.D + b1.D) * s)
+            func += _erfint((b2.D + b1.D + b1.H) * s)
+            func += -_erfint((b2.D + b1.D + b2.H + b1.H) * s)
+        return 0.5 / (b2.H * s ** 2) * func * np.exp(-r ** 2 * s ** 2)
 
     def _erfint(x):
         # Integral of error function
-        return x * erf(x) - 1.0/np.sqrt(np.pi) * (1.0-np.exp(-x**2))
+        return x * erf(x) - 1.0 / np.sqrt(np.pi) * (1.0 - np.exp(-x ** 2))
 
     # Lower bound of integration
-    a = 1.0 / np.sqrt(4.0*alpha*time)
+    a = 1.0 / np.sqrt(4.0 * alpha * time)
     # Evaluate integral using Gauss-Kronrod
-    h, err = quad(
-        _Ils, a, np.inf, args=(borehole1, borehole2, reaSource, imgSource))
+    h, err = quad(_Ils, a, np.inf, args=(borehole1, borehole2, reaSource, imgSource))
     return h
 
 
-def thermal_response_factors(
-        boreSegments, time, alpha, use_similarities=True,
-        splitRealAndImage=True, disTol=0.1, tol=1.0e-6, processes=None,
-        disp=False):
+def thermal_response_factors(boreSegments: list, time: Union[float, np.ndarray], alpha: float,
+                             use_similarities: bool = True, splitRealAndImage: bool = True, disTol: float = 0.1,
+                             processes: bool = None, disp: bool = False) -> np.ndarray:
     """
     Evaluate segment-to-segment thermal response factors.
 
@@ -147,10 +151,6 @@ def thermal_response_factors(
         (d1, d2) between two pairs of boreholes are considered equal if the
         difference between the two distances (abs(d1-d2)) is below tolerance.
         Default is 0.1.
-    tol : float, optional
-        Relative tolerance on length and depth. Two lenths H1, H2
-        (or depths D1, D2) are considered equal if abs(H1 - H2)/H2 < tol.
-        Default is 1.0e-6.
     processes : int, optional
         Number of processors to use in calculations. If the value is set to
         None, a number of processors equal to cpu_count() is used.
@@ -186,18 +186,12 @@ def thermal_response_factors(
             similarities(boreSegments,
                          splitRealAndImage=splitRealAndImage,
                          disTol=disTol,
-                         tol=tol,
                          processes=processes)
 
         toc1 = tim.time()
         if disp:
             print('{} sec'.format(toc1 - tic))
             print('Calculating segment to segment response factors ...')
-
-        # Initialize FLS solution for the real source
-        hPos = np.zeros(nt)
-        # Initialize FLS solution for the image source
-        hNeg = np.zeros(nt)
 
         # Similarities for real sources
         for s in range(nSimPos):
@@ -220,7 +214,7 @@ def thermal_response_factors(
             # Assign thermal response factors to similar segment pairs
             for (i, j) in simPos[s]:
                 h_ij[j, i, :] = hPos
-                h_ij[i, j, :] = b2.H/b1.H * hPos
+                h_ij[i, j, :] = b2.H / b1.H * hPos
 
         # Similarities for image sources (only if splitRealAndImage=True)
         if splitRealAndImage:
@@ -238,7 +232,7 @@ def thermal_response_factors(
                 # Assign thermal response factors to similar segment pairs
                 for (i, j) in simNeg[s]:
                     h_ij[j, i, :] = h_ij[j, i, :] + hNeg
-                    h_ij[i, j, :] = b2.H/b1.H * h_ij[j, i, :]
+                    h_ij[i, j, :] = b2.H / b1.H * h_ij[j, i, :]
 
     else:
         # Calculations without similarities
@@ -255,7 +249,7 @@ def thermal_response_factors(
             h_ij[i, i, :] = h
 
             # Segment to other segments thermal response factor
-            for j in range(i+1, nSources):
+            for j in range(i + 1, nSources):
                 b1 = boreSegments[j]
                 # Evaluate the FLS solution at all times in parallel
                 func = partial(finite_line_source,
@@ -274,13 +268,12 @@ def thermal_response_factors(
 
     # Return 2d array if time is a scalar
     if np.isscalar(time):
-        h_ij = h_ij[:,:,0]
+        h_ij = h_ij[:, :, 0]
 
     return h_ij
 
 
-def similarities(boreholes, splitRealAndImage=True, disTol=0.1, tol=1.0e-6,
-                 processes=None):
+def similarities(boreholes: list, splitRealAndImage: bool = True, disTol: float = 0.1, processes: bool = None):
     """
     Find similarities in the FLS solution for groups of boreholes.
 
@@ -295,13 +288,11 @@ def similarities(boreholes, splitRealAndImage=True, disTol=0.1, tol=1.0e-6,
         Set to True if similarities are evaluated separately for real and image
         sources. Set to False if similarities are evaluated for the sum of the
         real and image sources.
-    distol : float, defaults to 0.1
+    disTol : float, defaults to 0.1
         Absolute tolerance (in meters) on radial distance. Two distances
         (d1, d2) between two pairs of boreholes are considered equal if the
         difference between the two distances (abs(d1-d2)) is below tolerance.
-    tol : float, defaults to 1.0e-6
-        Relative tolerance on length and depth. Two lenths H1, H2
-        (or depths D1, D2) are considered equal if abs(H1 - H2)/H2 < tol
+    processes : bool, defaults to None
 
     Returns
     -------
@@ -335,9 +326,10 @@ def similarities(boreholes, splitRealAndImage=True, disTol=0.1, tol=1.0e-6,
 
     Examples
     --------
+    >>> import pygfunction as gt
     >>> b1 = gt.boreholes.Borehole(H=150., D=4., r_b=0.075, x=0., y=0.)
     >>> b2 = gt.boreholes.Borehole(H=150., D=4., r_b=0.075, x=5., y=0.)
-    >>> gt.heat_transfer.finite_line_source_similarities([b1, b2])
+    >>> gt.heat_transfer.similarities([b1, b2])
     2
     [[(0, 0), (1, 1)], [(0, 1)]]
     [0.075, 5.0]
@@ -354,8 +346,7 @@ def similarities(boreholes, splitRealAndImage=True, disTol=0.1, tol=1.0e-6,
     pool = Pool(processes=processes)
 
     # Group pairs of boreholes by radial distance
-    (nDis, disPairs, nPairs, pairs) = \
-        _similarities_group_by_distance(boreholes, disTol=disTol)
+    (nDis, disPairs, nPairs, pairs) = _similarities_group_by_distance(boreholes, disTol=disTol)
 
     # If real and image parts of the FLS are split, evaluate real and image
     # similarities separately:
@@ -410,16 +401,15 @@ def similarities(boreholes, splitRealAndImage=True, disTol=0.1, tol=1.0e-6,
             imageSim = imageSims[i]
             nSim = imageSim[0]
             nSimNeg += nSim
-            disSimNeg += [disPairs[i] for j in range(nSim)]
+            disSimNeg += [disPairs[i] for _ in range(nSim)]
             simNeg += imageSim[1]
             HSimNeg += imageSim[2]
             DSimNeg += imageSim[3]
 
-    return nSimPos, simPos, disSimPos, HSimPos, DSimPos, \
-            nSimNeg, simNeg, disSimNeg, HSimNeg, DSimNeg
+    return nSimPos, simPos, disSimPos, HSimPos, DSimPos, nSimNeg, simNeg, disSimNeg, HSimNeg, DSimNeg
 
 
-def _similarities_group_by_distance(boreholes, disTol=0.1):
+def _similarities_group_by_distance(boreholes: list, disTol: float = 0.1):
     """
     Groups pairs of boreholes by radial distance between borehole.
 
@@ -427,7 +417,7 @@ def _similarities_group_by_distance(boreholes, disTol=0.1):
     ----------
     boreholes : list of Borehole objects
         List of boreholes in the bore field.
-    distol : float, defaults to 0.1
+    disTol : float, defaults to 0.1
         Absolute tolerance (in meters) on radial distance. Two distances
         (d1, d2) between two pairs of boreholes are considered equal if the
         difference between the two distances (abs(d1-d2)) is below tolerance.
@@ -496,7 +486,7 @@ def _similarities_group_by_distance(boreholes, disTol=0.1):
     return nDis, disPairs, nPairs, pairs
 
 
-def _similarities_one_distance(pairs, boreholes, kind, tol=1.0e-6):
+def _similarities_one_distance(pairs: list, boreholes: list, kind: str, tol: float = 1.0e-6):
     """
     Evaluates similarities for all pairs of boreholes separated by the same
     radial distance.
@@ -541,12 +531,13 @@ def _similarities_one_distance(pairs, boreholes, kind, tol=1.0e-6):
     --------
 
     """
+
     # Condition for equivalence of the real part of the FLS solution
     def compare_real_segments(H1a, H1b, H2a, H2b, D1a,
                               D1b, D2a, D2b, tol):
-        if (abs((H1a-H1b)/H1a) < tol and
-            abs((H2a-H2b)/H2a) < tol and
-            abs(((D2a-D1a)-(D2b-D1b))/(D2a-D1a+1e-30)) < tol):
+        if (abs((H1a - H1b) / H1a) < tol and
+                abs((H2a - H2b) / H2a) < tol and
+                abs(((D2a - D1a) - (D2b - D1b)) / (D2a - D1a + 1e-30)) < tol):
             similarity = True
         else:
             similarity = False
@@ -555,9 +546,9 @@ def _similarities_one_distance(pairs, boreholes, kind, tol=1.0e-6):
     # Condition for equivalence of the image part of the FLS solution
     def compare_image_segments(H1a, H1b, H2a, H2b,
                                D1a, D1b, D2a, D2b, tol):
-        if (abs((H1a-H1b)/H1a) < tol and
-            abs((H2a-H2b)/H2a) < tol and
-            abs(((D2a+D1a)-(D2b+D1b))/(D2a+D1a+1e-30)) < tol):
+        if (abs((H1a - H1b) / H1a) < tol and
+                abs((H2a - H2b) / H2a) < tol and
+                abs(((D2a + D1a) - (D2b + D1b)) / (D2a + D1a + 1e-30)) < tol):
             similarity = True
         else:
             similarity = False
@@ -567,10 +558,10 @@ def _similarities_one_distance(pairs, boreholes, kind, tol=1.0e-6):
     def compare_realandimage_segments(H1a, H1b, H2a, H2b,
                                       D1a, D1b, D2a, D2b,
                                       tol):
-        if (abs((H1a-H1b)/H1a) < tol and
-            abs((H2a-H2b)/H2a) < tol and
-            abs((D1a-D1b)/(D1a+1e-30)) < tol and
-            abs((D2a-D2b)/(D2a+1e-30)) < tol):
+        if (abs((H1a - H1b) / H1a) < tol and
+                abs((H2a - H2b) / H2a) < tol and
+                abs((D1a - D1b) / (D1a + 1e-30)) < tol and
+                abs((D2a - D2b) / (D2a + 1e-30)) < tol):
             similarity = True
         else:
             similarity = False
@@ -586,6 +577,8 @@ def _similarities_one_distance(pairs, boreholes, kind, tol=1.0e-6):
     elif kind.lower() == 'realandimage':
         # Check full real+image FLS
         compare_segments = compare_realandimage_segments
+    else:
+        raise NotImplementedError("Error: '{}' not implemented.".format(kind.lower()))
 
     # Initialize symmetries
     nSim = 1

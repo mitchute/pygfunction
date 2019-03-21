@@ -7,11 +7,11 @@
     boreholes, and (c) equal inlet fluid temperature into all boreholes.
 
 """
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import AutoMinorLocator
 import numpy as np
+from matplotlib.ticker import AutoMinorLocator
 from scipy import pi
 
 import pygfunction as gt
@@ -23,46 +23,46 @@ def main():
     # -------------------------------------------------------------------------
 
     # Borehole dimensions
-    D = 4.0             # Borehole buried depth (m)
-    H = 150.0           # Borehole length (m)
-    r_b = 0.075         # Borehole radius (m)
-    B = 7.5             # Borehole spacing (m)
+    D = 4.0  # Borehole buried depth (m)
+    H = 150.0  # Borehole length (m)
+    r_b = 0.075  # Borehole radius (m)
+    B = 7.5  # Borehole spacing (m)
 
     # Pipe dimensions
-    rp_out = 0.0211     # Pipe outer radius (m)
-    rp_in = 0.0147      # Pipe inner radius (m)
-    D_s = 0.052         # Shank spacing (m)
-    epsilon = 1.0e-6    # Pipe roughness (m)
+    rp_out = 0.0211  # Pipe outer radius (m)
+    rp_in = 0.0147  # Pipe inner radius (m)
+    D_s = 0.052  # Shank spacing (m)
+    epsilon = 1.0e-6  # Pipe roughness (m)
 
     # Pipe positions
     # Single U-tube [(x_in, y_in), (x_out, y_out)]
     pos_pipes = [(-D_s, 0.), (D_s, 0.)]
 
     # Ground properties
-    alpha = 1.0e-6      # Ground thermal diffusivity (m2/s)
-    k_s = 2.0           # Ground thermal conductivity (W/m.K)
+    alpha = 1.0e-6  # Ground thermal diffusivity (m2/s)
+    k_s = 2.0  # Ground thermal conductivity (W/m.K)
 
     # Grout properties
-    k_g = 1.0           # Grout thermal conductivity (W/m.K)
+    k_g = 1.0  # Grout thermal conductivity (W/m.K)
 
     # Pipe properties
-    k_p = 0.4           # Pipe thermal conductivity (W/m.K)
+    k_p = 0.4  # Pipe thermal conductivity (W/m.K)
 
     # Fluid properties
-    m_flow = 0.25       # Total fluid mass flow rate per borehole (kg/s)
-    cp_f = 3977.        # Fluid specific isobaric heat capacity (J/kg.K)
-    den_f = 1015.       # Fluid density (kg/m3)
-    visc_f = 0.00203    # Fluid dynamic viscosity (kg/m.s)
-    k_f = 0.492         # Fluid thermal conductivity (W/m.K)
+    m_flow = 0.25  # Total fluid mass flow rate per borehole (kg/s)
+    cp_f = 3977.  # Fluid specific isobaric heat capacity (J/kg.K)
+    den_f = 1015.  # Fluid density (kg/m3)
+    visc_f = 0.00203  # Fluid dynamic viscosity (kg/m.s)
+    k_f = 0.492  # Fluid thermal conductivity (W/m.K)
 
     # Number of segments per borehole
     nSegments = 12
 
     # Geometrically expanding time vector.
-    dt = 100*3600.                  # Time step
-    tmax = 3000. * 8760. * 3600.    # Maximum time
-    Nt = 50                         # Number of time steps
-    ts = H**2/(9.*alpha)            # Bore field characteristic time
+    dt = 100 * 3600.  # Time step
+    tmax = 3000. * 8760. * 3600.  # Maximum time
+    Nt = 50  # Number of time steps
+    ts = H ** 2 / (9. * alpha)  # Bore field characteristic time
     time = gt.utilities.time_geometric(dt, tmax, Nt)
 
     # -------------------------------------------------------------------------
@@ -90,7 +90,7 @@ def main():
                                                                       k_f,
                                                                       cp_f,
                                                                       epsilon)
-    R_f = 1.0/(h_f*2*pi*rp_in)
+    R_f = 1.0 / (h_f * 2 * pi * rp_in)
 
     # Single U-tube, same for all boreholes in the bore field
     UTubes = []
@@ -124,11 +124,11 @@ def main():
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     # g-functions
-    ax1.plot(np.log(time/ts), gfunc_uniform_Q,
+    ax1.plot(np.log(time / ts), gfunc_uniform_Q,
              'k-', lw=1.5, label='Uniform heat extraction rate')
-    ax1.plot(np.log(time/ts), gfunc_uniform_T,
+    ax1.plot(np.log(time / ts), gfunc_uniform_T,
              'b--', lw=1.5, label='Uniform borehole wall temperature')
-    ax1.plot(np.log(time/ts), gfunc_equal_Tf_in,
+    ax1.plot(np.log(time / ts), gfunc_equal_Tf_in,
              'r-.', lw=1.5, label='Equal inlet temperature')
     ax1.legend()
     # Axis labels

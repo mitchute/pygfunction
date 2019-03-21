@@ -1,13 +1,17 @@
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
+
+from abc import ABC, abstractmethod
+from typing import Union
 
 import numpy as np
 from scipy.constants import pi
 from scipy.special import binom
 
+from .boreholes import Borehole
 from .boreholes import _path_to_inlet, _verify_bore_connectivity
 
 
-class _BasePipe(object):
+class _BasePipe(ABC):
     """
     Template for pipe classes.
 
@@ -25,13 +29,22 @@ class _BasePipe(object):
         Total number of pipe outlets, equals to 1.
 
     """
-    def __init__(self, borehole):
+
+    def __init__(self, borehole: Borehole):
         self.b = borehole
         self.nPipes = 1
         self.nInlets = 1
         self.nOutlets = 1
+        self.pos = ()
+        self._m_flow_pipe = 0
+        self._cp_pipe = 0
+        self._m_flow_in = 0
+        self._cp_in = 0
+        self.r_in = 0
+        self.r_out = 0
 
-    def get_temperature(self, z, Tin, Tb, m_flow, cp):
+    def get_temperature(self, z: Union[float, np.ndarray], Tin: Union[float, np.ndarray], Tb: Union[float, np.ndarray],
+                        m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray]) -> np.ndarray:
         """
         Returns the fluid temperatures of the borehole at a depth (z).
 
@@ -56,7 +69,7 @@ class _BasePipe(object):
         """
         nSegments = len(np.atleast_1d(Tb))
         z_all = np.atleast_1d(z).flatten()
-        Tf = np.zeros((len(z_all), 2*self.nPipes))
+        Tf = np.zeros((len(z_all), 2 * self.nPipes))
         for i in range(len(z_all)):
             zi = z_all[i]
             # Build coefficient matrices
@@ -65,14 +78,16 @@ class _BasePipe(object):
                                                       cp,
                                                       nSegments)
             # Evaluate fluid temperatures
-            Tf[i,:] = a_in.dot(Tin).flatten() + a_b.dot(Tb).flatten()
+            Tf[i, :] = a_in.dot(Tin).flatten() + a_b.dot(Tb).flatten()
 
         # Return 1d array if z was supplied as scalar
         if np.isscalar(z):
             Tf = Tf.flatten()
         return Tf
 
-    def get_inlet_temperature(self, Qf, Tb, m_flow, cp):
+    def get_inlet_temperature(self, Qf: Union[float, np.ndarray], Tb: Union[float, np.ndarray],
+                              m_flow: Union[float, np.ndarray],
+                              cp: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """
         Returns the outlet fluid temperatures of the borehole.
 
@@ -102,10 +117,12 @@ class _BasePipe(object):
         Tin = a_qf.dot(Qf).flatten() + a_b.dot(Tb).flatten()
         # Return float if Tin was supplied as scalar
         if np.isscalar(Qf) and not np.isscalar(Tin):
-            Tin = np.asscalar(Tin)
+            Tin = Tin.item()
         return Tin
 
-    def get_outlet_temperature(self, Tin, Tb, m_flow, cp):
+    def get_outlet_temperature(self, Tin: Union[float, np.ndarray], Tb: Union[float, np.ndarray],
+                               m_flow: Union[float, np.ndarray],
+                               cp: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """
         Returns the outlet fluid temperatures of the borehole.
 
@@ -135,10 +152,12 @@ class _BasePipe(object):
         Tout = a_in.dot(Tin).flatten() + a_b.dot(Tb).flatten()
         # Return float if Tin was supplied as scalar
         if np.isscalar(Tin) and not np.isscalar(Tout):
-            Tout = np.asscalar(Tout)
+            Tout = Tout.item()
         return Tout
 
-    def get_borehole_heat_extraction_rate(self, Tin, Tb, m_flow, cp):
+    def get_borehole_heat_extraction_rate(self, Tin: Union[float, np.ndarray], Tb: Union[float, np.ndarray],
+                                          m_flow: Union[float, np.ndarray],
+                                          cp: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """
         Returns the heat extraction rates of the borehole.
 
@@ -166,10 +185,12 @@ class _BasePipe(object):
         Qb = a_in.dot(Tin).flatten() + a_b.dot(Tb).flatten()
         # Return float if Tb was supplied as scalar
         if np.isscalar(Tb) and not np.isscalar(Qb):
-            Qb = np.asscalar(Qb)
+            Qb = Qb.item()
         return Qb
 
-    def get_fluid_heat_extraction_rate(self, Tin, Tb, m_flow, cp):
+    def get_fluid_heat_extraction_rate(self, Tin: Union[float, np.ndarray], Tb: Union[float, np.ndarray],
+                                       m_flow: Union[float, np.ndarray],
+                                       cp: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """
         Returns the heat extraction rates of the borehole.
 
@@ -197,10 +218,11 @@ class _BasePipe(object):
         Qf = a_in.dot(Tin).flatten() + a_b.dot(Tb).flatten()
         # Return float if Tb was supplied as scalar
         if np.isscalar(Tin) and not np.isscalar(Qf):
-            Qf = np.asscalar(Qf)
+            Qf = Qf.item()
         return Qf
 
-    def get_total_heat_extraction_rate(self, Tin, Tb, m_flow, cp):
+    def get_total_heat_extraction_rate(self, Tin: Union[float, np.ndarray], Tb: Union[float, np.ndarray],
+                                       m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray]) -> float:
         """
         Returns the total heat extraction rate of the borehole.
 
@@ -225,7 +247,8 @@ class _BasePipe(object):
         Q = np.sum(Qf)
         return Q
 
-    def coefficients_inlet_temperature(self, m_flow, cp, nSegments):
+    def coefficients_inlet_temperature(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray],
+                                       nSegments: int) -> tuple:
         """
         Build coefficient matrices to evaluate outlet fluid temperature.
 
@@ -277,7 +300,8 @@ class _BasePipe(object):
 
         return a_qf, a_b
 
-    def coefficients_outlet_temperature(self, m_flow, cp, nSegments):
+    def coefficients_outlet_temperature(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray],
+                                        nSegments: int) -> tuple:
         """
         Build coefficient matrices to evaluate outlet fluid temperature.
 
@@ -338,7 +362,8 @@ class _BasePipe(object):
 
         return a_in, a_b
 
-    def coefficients_temperature(self, z, m_flow, cp, nSegments):
+    def coefficients_temperature(self, z: float, m_flow: Union[float, np.ndarray],
+                                 cp: Union[float, np.ndarray], nSegments: int) -> tuple:
         """
         Build coefficient matrices to evaluate fluid temperatures at a depth
         (z).
@@ -370,7 +395,7 @@ class _BasePipe(object):
 
         """
         # method_id for coefficients_temperature is 5
-        method_id = 5
+        # method_id = 5  Unused: check
 
         # Coefficient matrices for outlet temperatures:
         # [T_{f,out}] = [b_in]*[T_{f,in}] + [b_b]*[T_b]
@@ -384,9 +409,7 @@ class _BasePipe(object):
             # Coefficient matrices for temperatures at depth (z = 0):
             # [T_f](0) = [c_in]*[T_{f,in}] + [c_out]*[T_{f,out}]
             #                              + [c_b]*[T_b]
-            c_in, c_out, c_b = self._continuity_condition_head(m_flow,
-                                                               cp,
-                                                               nSegments)
+            c_in, c_out, c_b = self._continuity_condition_head(m_flow, cp, nSegments)
 
             # Store coefficients
             self._set_stored_coefficients(m_flow, cp, nSegments,
@@ -403,8 +426,8 @@ class _BasePipe(object):
 
         return a_in, a_b
 
-    def coefficients_borehole_heat_extraction_rate(self,
-                                                   m_flow, cp, nSegments):
+    def coefficients_borehole_heat_extraction_rate(self, m_flow: Union[float, np.ndarray],
+                                                   cp: Union[float, np.ndarray], nSegments: int) -> tuple:
         """
         Build coefficient matrices to evaluate heat extraction rates.
 
@@ -445,7 +468,7 @@ class _BasePipe(object):
             m_flow_pipe = self._m_flow_pipe
             cp_pipe = self._cp_pipe
             mcp = np.hstack((-m_flow_pipe[0:nPipes],
-                             m_flow_pipe[-nPipes:]))*cp_pipe
+                             m_flow_pipe[-nPipes:])) * cp_pipe
 
             # Initialize coefficient matrices
             a_in = np.zeros((nSegments, self.nInlets))
@@ -473,7 +496,8 @@ class _BasePipe(object):
 
         return a_in, a_b
 
-    def coefficients_fluid_heat_extraction_rate(self, m_flow, cp, nSegments):
+    def coefficients_fluid_heat_extraction_rate(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray],
+                                                nSegments: int):
         """
         Build coefficient matrices to evaluate heat extraction rates.
 
@@ -512,8 +536,7 @@ class _BasePipe(object):
 
             # Coefficient matrices for outlet temperatures:
             # [T_{f,out}] = [b_in]*[T_{f,in}] + [b_b]*[T_b]
-            b_in, b_b = self.coefficients_outlet_temperature(m_flow, cp,
-                                                             nSegments)
+            b_in, b_b = self.coefficients_outlet_temperature(m_flow, cp, nSegments)
 
             # Intermediate matrices for fluid heat extraction rates:
             # [Q_{f}] = [c_in]*[T_{f,in}] + [c_out]*[T_{f,out}]
@@ -546,10 +569,10 @@ class _BasePipe(object):
         from matplotlib.ticker import AutoMinorLocator
 
         # Initialize figure
-        LW = 1.5    # Line width
-        FS = 12.    # Font size
+        LW = 1.5  # Line width
+        FS = 12.  # Font size
 
-        plt.rc('figure', figsize=(80.0/25.4, 80.0/25.4))
+        plt.rc('figure', figsize=(80.0 / 25.4, 80.0 / 25.4))
         fig = plt.figure()
         ax = fig.add_subplot(111)
 
@@ -592,51 +615,47 @@ class _BasePipe(object):
         ax.xaxis.set_minor_locator(AutoMinorLocator())
         ax.yaxis.set_minor_locator(AutoMinorLocator())
         plt.tight_layout()
-    
+
         return fig
 
-    def _initialize_stored_coefficients(self):
-        nMethods = 8    # Number of class methods
-        self._stored_coefficients = [() for i in range(nMethods)]
+    def _initialize_stored_coefficients(self) -> None:
+        nMethods = 8  # Number of class methods
+        self._stored_coefficients = [() for _ in range(nMethods)]
         self._stored_m_flow_cp = [np.empty(self.nInlets)
-                                  for i in range(nMethods)]
-        self._stored_nSegments = [np.nan for i in range(nMethods)]
+                                  for _ in range(nMethods)]
+        self._stored_nSegments = [np.nan for _ in range(nMethods)]
         self._m_flow_cp_model_variables = np.empty(self.nInlets)
         self._nSegments_model_variables = np.nan
 
-        return
-
-    def _set_stored_coefficients(self, m_flow, cp, nSegments, coefficients,
-                                 method_id):
+    def _set_stored_coefficients(self, m_flow: float, cp: float, nSegments: int,
+                                 coefficients: tuple, method_id: int) -> None:
         self._stored_coefficients[method_id] = coefficients
-        self._stored_m_flow_cp[method_id] = m_flow*cp
+        self._stored_m_flow_cp[method_id] = m_flow * cp
         self._stored_nSegments[method_id] = nSegments
-
-        return
 
     def _get_stored_coefficients(self, method_id):
         coefficients = self._stored_coefficients[method_id]
 
         return coefficients
 
-    def _check_model_variables(self, m_flow, cp, nSegments, tol=1e-6):
+    def _check_model_variables(self, m_flow: float, cp: float, nSegments: int, tol: float = 1e-6) -> bool:
         stored_m_flow_cp = self._m_flow_cp_model_variables
         stored_nSegments = self._nSegments_model_variables
-        if (np.allclose(m_flow*cp, stored_m_flow_cp, rtol=tol)
+        if (np.allclose(m_flow * cp, stored_m_flow_cp, rtol=tol)
                 and nSegments == stored_nSegments):
             check = True
         else:
             self._update_model_variables(m_flow, cp, nSegments)
-            self._m_flow_cp_model_variables = m_flow*cp
+            self._m_flow_cp_model_variables = m_flow * cp
             self._nSegments_model_variables = nSegments
             check = False
 
         return check
 
-    def _check_coefficients(self, m_flow, cp, nSegments, method_id, tol=1e-6):
+    def _check_coefficients(self, m_flow: float, cp: float, nSegments: int, method_id: int, tol: float = 1e-6) -> bool:
         stored_m_flow_cp = self._stored_m_flow_cp[method_id]
         stored_nSegments = self._stored_nSegments[method_id]
-        if (np.allclose(m_flow*cp, stored_m_flow_cp, rtol=tol)
+        if (np.allclose(m_flow * cp, stored_m_flow_cp, rtol=tol)
                 and nSegments == stored_nSegments):
             check = True
         else:
@@ -644,53 +663,58 @@ class _BasePipe(object):
 
         return check
 
-    def _continuity_condition_base(self, m_flow, cp, nSegments):
+    @abstractmethod
+    def _continuity_condition_base(self, m_flow: float, cp: float, nSegments: int) -> tuple:
         """ Returns coefficients for the relation
             [a_out]*[T_{f,out}] = [a_in]*[T_{f,in}] + [a_b]*[T_b]
         """
         raise NotImplementedError(
-            '_continuity_condition_base class method not implemented, '
-            'this method should return matrices for the relation: '
-            '[a_out]*[T_{f,out}] = [a_in]*[T_{f,in}] + [a_b]*[T_b]')
+                '_continuity_condition_base class method not implemented, '
+                'this method should return matrices for the relation: '
+                '[a_out]*[T_{f,out}] = [a_in]*[T_{f,in}] + [a_b]*[T_b]')
 
-    def _continuity_condition_head(self, m_flow, cp, nSegments):
+    @abstractmethod
+    def _continuity_condition_head(self, m_flow: float, cp: float, nSegments: int) -> tuple:
         """ Returns coefficients for the relation
             [T_f](z=0) = [a_in]*[T_{f,in}] + [a_out]*[T_{f,out}] + [a_b]*[T_b]
         """
         raise NotImplementedError(
-            '_continuity_condition_head class method not implemented, '
-            'this method should return matrices for the relation: '
-            '[T_f](z=0) = [a_in]*[T_{f,in}] + [a_out]*[T_{f,out}] '
-            '+ [a_b]*[T_b]')
+                '_continuity_condition_head class method not implemented, '
+                'this method should return matrices for the relation: '
+                '[T_f](z=0) = [a_in]*[T_{f,in}] + [a_out]*[T_{f,out}] '
+                '+ [a_b]*[T_b]')
 
-    def _general_solution(self, z, m_flow, cp, nSegments):
+    @abstractmethod
+    def _general_solution(self, z: float, m_flow: float, cp: float, nSegments: int) -> tuple:
         """ Returns coefficients for the relation
             [T_f](z) = [a_f0]*[T_f](0) + [a_b]*[T_b]
         """
         raise NotImplementedError(
-            '_general_solution class method not implemented, '
-            'this method should return matrices for the relation: '
-            '[T_f](z) = [a_f0]*[T_f](0) + [a_b]*[T_b]')
+                '_general_solution class method not implemented, '
+                'this method should return matrices for the relation: '
+                '[T_f](z) = [a_f0]*[T_f](0) + [a_b]*[T_b]')
 
-    def _update_model_variables(self, m_flow, cp, nSegments):
+    @abstractmethod
+    def _update_model_variables(self, m_flow: float, cp: float, nSegments: int) -> None:
         """
         Evaluate common coefficients needed in other class methods.
         """
         raise NotImplementedError(
-            '_update_coefficients class method not implemented, '
-            'this method should evaluate common coefficients needed in other '
-            'class methods.')
+                '_update_coefficients class method not implemented, '
+                'this method should evaluate common coefficients needed in other '
+                'class methods.')
 
-    def _format_inputs(self, m_flow, cp, nSegments):
+    @abstractmethod
+    def _format_inputs(self, m_flow: float, cp: float, nSegments: int) -> None:
         """
         Format arrays of mass flow rates and heat capacity.
         """
         raise NotImplementedError(
-            '_format_inputs class method not implemented, '
-            'this method should format 1d arrays for the inlet mass flow '
-            'rates (_m_flow_in), mass flow rates in each pipe (_m_flow_pipe), '
-            'heat capacity at each inlet (_cp_in) and heat capacity in each '
-            'pipe (_cp_pipe).')
+                '_format_inputs class method not implemented, '
+                'this method should format 1d arrays for the inlet mass flow '
+                'rates (_m_flow_in), mass flow rates in each pipe (_m_flow_pipe), '
+                'heat capacity at each inlet (_cp_in) and heat capacity in each '
+                'pipe (_cp_pipe).')
 
 
 class SingleUTube(_BasePipe):
@@ -709,7 +733,7 @@ class SingleUTube(_BasePipe):
     r_in : float
         Inner radius (in meters) of the U-Tube pipes.
     r_out : float
-        Outter radius (in meters) of the U-Tube pipes.
+        Outer radius (in meters) of the U-Tube pipes.
     borehole : Borehole object
         Borehole class object of the borehole containing the U-Tube.
     k_s : float
@@ -717,7 +741,7 @@ class SingleUTube(_BasePipe):
     k_g : float
         Grout thermal conductivity (in W/m-K).
     R_fp : float
-        Fluid to outter pipe wall thermal resistance (m-K/W).
+        Fluid to outer pipe wall thermal resistance (m-K/W).
     J : int, optional
         Number of multipoles per pipe to evaluate the thermal resistances.
         Default is 2.
@@ -735,11 +759,13 @@ class SingleUTube(_BasePipe):
        Lund, Department of Mathematical Physics. Lund, Sweden.
 
     """
-    def __init__(self, pos, r_in, r_out, borehole, k_s, k_g, R_fp, J=2):
+
+    def __init__(self, pos: list, r_in: float, r_out: float, borehole: Borehole,
+                 k_s: float, k_g: float, R_fp: float, J: int = 2):
+        _BasePipe.__init__(self, borehole)
         self.pos = pos
         self.r_in = r_in
         self.r_out = r_out
-        self.b = borehole
         self.k_s = k_s
         self.k_g = k_g
         self.R_fp = R_fp
@@ -749,13 +775,13 @@ class SingleUTube(_BasePipe):
         self.nOutlets = 1
 
         # Delta-circuit thermal resistances
-        self._Rd = thermal_resistances(pos, r_out, borehole.r_b,
-                                       k_s, k_g, self.R_fp, J=self.J)[1]
+        self._Rd = thermal_resistances(pos, r_out, borehole.r_b, k_s, k_g, self.R_fp, J=self.J)[1]
 
         # Initialize stored_coefficients
         self._initialize_stored_coefficients()
 
-    def _continuity_condition_base(self, m_flow, cp, nSegments):
+    def _continuity_condition_base(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray],
+                                   nSegments: int) -> tuple:
         """
         Equation that satisfies equal fluid temperatures in both legs of
         each U-tube pipe at depth (z = H).
@@ -807,7 +833,8 @@ class SingleUTube(_BasePipe):
 
         return a_in, a_out, a_b
 
-    def _continuity_condition_head(self, m_flow, cp, nSegments):
+    def _continuity_condition_head(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray],
+                                   nSegments: int) -> tuple:
         """
         Build coefficient matrices to evaluate fluid temperatures at depth
         (z = 0). These coefficients take into account connections between
@@ -850,7 +877,8 @@ class SingleUTube(_BasePipe):
 
         return a_in, a_out, a_b
 
-    def _general_solution(self, z, m_flow, cp, nSegments):
+    def _general_solution(self, z: Union[float, np.ndarray], m_flow: Union[float, np.ndarray],
+                          cp: Union[float, np.ndarray], nSegments: int) -> tuple:
         """
         General solution for fluid temperatures at a depth (z).
 
@@ -863,6 +891,8 @@ class SingleUTube(_BasePipe):
 
         Parameters
         ----------
+        z : float or array
+            Depth (in meters) to evaluate the fluid temperature coefficients.
         m_flow : float or array
             Inlet mass flow rate (in kg/s).
         cp : float or array
@@ -882,12 +912,12 @@ class SingleUTube(_BasePipe):
         self._check_model_variables(m_flow, cp, nSegments)
 
         a_f0 = np.array([[self._f1(z), self._f2(z)],
-                        [-self._f2(z), self._f3(z)]])
+                         [-self._f2(z), self._f3(z)]])
 
-        a_b = np.zeros((2*self.nPipes, nSegments))
-        N = int(np.ceil(z/self.b.H*nSegments))
+        a_b = np.zeros((2 * self.nPipes, nSegments))
+        N = int(np.ceil(z / self.b.H * nSegments))
         for i in range(N):
-            z1 = z - min((i+1)*self.b.H/nSegments, z)
+            z1 = z - min((i + 1) * self.b.H / nSegments, z)
             z2 = z - i * self.b.H / nSegments
             dF4 = self._F4(z2) - self._F4(z1)
             dF5 = self._F5(z2) - self._F5(z1)
@@ -896,118 +926,173 @@ class SingleUTube(_BasePipe):
 
         return a_f0, a_b
 
-    def _update_model_variables(self, m_flow, cp, nSegments):
+    def _update_model_variables(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray],
+                                nSegments: int) -> None:
         """
         Evaluate dimensionless resistances for Hellstrom (1991) solution.
+
+        Parameters
+        ----------
+        m_flow : float or array
+            Inlet mass flow rate (in kg/s).
+        cp : float or array
+            Fluid specific isobaric heat capacity (in J/kg.degC).
+        nSegments : int
+            Number of borehole segments.
         """
+
         # Format mass flow rate and heat capacity inputs
         self._format_inputs(m_flow, cp, nSegments)
         m_flow_in = self._m_flow_in
         cp_in = self._cp_in
 
         # Dimensionless delta-circuit conductances
-        self._beta1 = 1./(self._Rd[0][0]*m_flow_in[0]*cp_in[0])
-        self._beta2 = 1./(self._Rd[1][1]*m_flow_in[0]*cp_in[0])
-        self._beta12 = 1./(self._Rd[0][1]*m_flow_in[0]*cp_in[0])
-        self._beta = 0.5*(self._beta2 - self._beta1)
+        self._beta1 = 1. / (self._Rd[0][0] * m_flow_in[0] * cp_in[0])
+        self._beta2 = 1. / (self._Rd[1][1] * m_flow_in[0] * cp_in[0])
+        self._beta12 = 1. / (self._Rd[0][1] * m_flow_in[0] * cp_in[0])
+        self._beta = 0.5 * (self._beta2 - self._beta1)
         # Eigenvalues
-        self._gamma = np.sqrt(0.25*(self._beta1+self._beta2)**2
-                              + self._beta12*(self._beta1+self._beta2))
-        self._delta = 1./self._gamma \
-            * (self._beta12 + 0.5*(self._beta1+self._beta2))
+        self._gamma = np.sqrt(0.25 * (self._beta1 + self._beta2) ** 2
+                              + self._beta12 * (self._beta1 + self._beta2))
+        self._delta = 1. / self._gamma * (self._beta12 + 0.5 * (self._beta1 + self._beta2))
 
-    def _format_inputs(self, m_flow, cp, nSegments):
+    def _format_inputs(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray],
+                       nSegments: int) -> None:
         """
         Format mass flow rate and heat capacity inputs.
+
+        Parameters
+        ----------
+        m_flow : float or array
+            Inlet mass flow rate (in kg/s).
+        cp : float or array
+            Fluid specific isobaric heat capacity (in J/kg.degC).
+        nSegments : int
+            Number of borehole segments.
         """
+
         # Format mass flow rate inputs
         if np.isscalar(m_flow):
             # Mass flow rate in each fluid circuit
-            m_flow_in = m_flow*np.ones(self.nInlets)
+            m_flow_in = m_flow * np.ones(self.nInlets)
         else:
             # Mass flow rate in each fluid circuit
             m_flow_in = m_flow
         self._m_flow_in = m_flow_in
         # Mass flow rate in pipes
-        m_flow_pipe = np.tile(m_flow_in, 2*self.nPipes)
+        m_flow_pipe = np.tile(m_flow_in, 2 * self.nPipes)
         self._m_flow_pipe = m_flow_pipe
 
         # Format heat capacity inputs
         if np.isscalar(cp):
             # Heat capacity in each fluid circuit
-            cp_in = cp*np.ones(self.nInlets)
+            cp_in = cp * np.ones(self.nInlets)
         else:
             # Heat capacity in each fluid circuit
             cp_in = cp
         self._cp_in = cp_in
         # Heat capacity in pipes
-        cp_pipe = np.tile(cp_in, 2*self.nPipes)
+        cp_pipe = np.tile(cp_in, 2 * self.nPipes)
         self._cp_pipe = cp_pipe
 
-    def _f1(self, z):
+    def _f1(self, z: float) -> float:
         """
         Calculate function f1 from Hellstrom (1991)
+
+        Parameters
+        ----------
+        z : float
+            Depth (in meters) to evaluate the fluid temperature coefficients.
         """
-        f1 = np.exp(self._beta*z)*(np.cosh(self._gamma*z)
-                                   - self._delta*np.sinh(self._gamma*z))
+
+        f1 = np.exp(self._beta * z) * (np.cosh(self._gamma * z) - self._delta * np.sinh(self._gamma * z))
         return f1
 
-    def _f2(self, z):
+    def _f2(self, z: float) -> float:
         """
         Calculate function f2 from Hellstrom (1991)
+
+        Parameters
+        ----------
+        z : float
+            Depth (in meters) to evaluate the fluid temperature coefficients.
         """
-        f2 = np.exp(self._beta*z)*self._beta12/self._gamma \
-            * np.sinh(self._gamma*z)
+
+        f2 = np.exp(self._beta * z) * self._beta12 / self._gamma * np.sinh(self._gamma * z)
         return f2
 
-    def _f3(self, z):
+    def _f3(self, z: float) -> float:
         """
         Calculate function f3 from Hellstrom (1991)
+
+        Parameters
+        ----------
+        z : float
+            Depth (in meters) to evaluate the fluid temperature coefficients.
         """
-        f3 = np.exp(self._beta*z)*(np.cosh(self._gamma*z)
-                                   + self._delta*np.sinh(self._gamma*z))
+
+        f3 = np.exp(self._beta * z) * (np.cosh(self._gamma * z) + self._delta * np.sinh(self._gamma * z))
         return f3
 
-    def _f4(self, z):
+    def _f4(self, z: float) -> float:
         """
         Calculate function f4 from Hellstrom (1991)
+
+        Parameters
+        ----------
+        z : float
+            Depth (in meters) to evaluate the fluid temperature coefficients.
         """
-        A = self._delta*self._beta1 + self._beta2*self._beta12/self._gamma
-        f4 = np.exp(self._beta*z) \
-            * (self._beta1*np.cosh(self._gamma*z) - A*np.sinh(self._gamma*z))
+
+        A = self._delta * self._beta1 + self._beta2 * self._beta12 / self._gamma
+        f4 = np.exp(self._beta * z) * (self._beta1 * np.cosh(self._gamma * z) - A * np.sinh(self._gamma * z))
         return f4
 
-    def _f5(self, z):
+    def _f5(self, z: float) -> float:
         """
         Calculate function f5 from Hellstrom (1991)
+
+        Parameters
+        ----------
+        z : float
+            Depth (in meters) to evaluate the fluid temperature coefficients.
         """
-        B = self._delta*self._beta2 + self._beta1*self._beta12/self._gamma
-        f5 = np.exp(self._beta*z) \
-            * (self._beta2*np.cosh(self._gamma*z) + B*np.sinh(self._gamma*z))
+
+        B = self._delta * self._beta2 + self._beta1 * self._beta12 / self._gamma
+        f5 = np.exp(self._beta * z) * (self._beta2 * np.cosh(self._gamma * z) + B * np.sinh(self._gamma * z))
         return f5
 
-    def _F4(self, z):
+    def _F4(self, z: float) -> float:
         """
         Calculate integral of function f4 from Hellstrom (1991)
+
+        Parameters
+        ----------
+        z : float
+            Depth (in meters) to evaluate the fluid temperature coefficients.
         """
-        A = self._delta*self._beta1 + self._beta2*self._beta12/self._gamma
-        C = self._beta1*self._beta + A*self._gamma
-        S = - (self._beta1*self._gamma + self._beta*A)
-        denom = (self._beta**2 - self._gamma**2)
-        F4 = np.exp(self._beta*z) / denom \
-            * (C*np.cosh(self._gamma*z) + S*np.sinh(self._gamma*z))
+        A = self._delta * self._beta1 + self._beta2 * self._beta12 / self._gamma
+        C = self._beta1 * self._beta + A * self._gamma
+        S = - (self._beta1 * self._gamma + self._beta * A)
+        denom = (self._beta ** 2 - self._gamma ** 2)
+        F4 = np.exp(self._beta * z) / denom * (C * np.cosh(self._gamma * z) + S * np.sinh(self._gamma * z))
         return F4
 
-    def _F5(self, z):
+    def _F5(self, z: float) -> float:
         """
         Calculate integral of function f5 from Hellstrom (1991)
+
+        Parameters
+        ----------
+        z : float
+            Depth (in meters) to evaluate the fluid temperature coefficients.
         """
-        B = self._delta*self._beta2 + self._beta1*self._beta12/self._gamma
-        C = self._beta2*self._beta - B*self._gamma
-        S = - (self._beta2*self._gamma - self._beta*B)
-        denom = (self._beta**2 - self._gamma**2)
-        F5 = np.exp(self._beta*z) / denom \
-            * (C*np.cosh(self._gamma*z) + S*np.sinh(self._gamma*z))
+
+        B = self._delta * self._beta2 + self._beta1 * self._beta12 / self._gamma
+        C = self._beta2 * self._beta - B * self._gamma
+        S = - (self._beta2 * self._gamma - self._beta * B)
+        denom = (self._beta ** 2 - self._gamma ** 2)
+        F5 = np.exp(self._beta * z) / denom * (C * np.cosh(self._gamma * z) + S * np.sinh(self._gamma * z))
         return F5
 
 
@@ -1027,7 +1112,7 @@ class MultipleUTube(_BasePipe):
     r_in : float
         Inner radius (in meters) of the U-Tube pipes.
     r_out : float
-        Outter radius (in meters) of the U-Tube pipes.
+        Outer radius (in meters) of the U-Tube pipes.
     borehole : Borehole object
         Borehole class object of the borehole containing the U-Tube.
     k_s : float
@@ -1035,7 +1120,7 @@ class MultipleUTube(_BasePipe):
     k_g : float
         Grout thermal conductivity (in W/m-K).
     R_fp : float
-        Fluid to outter pipe wall thermal resistance (m-K/W).
+        Fluid to outer pipe wall thermal resistance (m-K/W).
     J : int, optional
         Number of multipoles per pipe to evaluate the thermal resistances.
         Default is 2.
@@ -1057,12 +1142,13 @@ class MultipleUTube(_BasePipe):
        Renewable Energy, 96, 137-147.
 
     """
-    def __init__(self, pos, r_in, r_out, borehole, k_s,
-                 k_g, R_fp, nPipes, config='parallel', J=2):
+
+    def __init__(self, pos: list, r_in: float, r_out: float, borehole: Borehole, k_s: float,
+                 k_g: float, R_fp: float, nPipes: int, config: str = 'parallel', J: int = 2):
+        _BasePipe.__init__(self, borehole)
         self.pos = pos
         self.r_in = r_in
         self.r_out = r_out
-        self.b = borehole
         self.k_s = k_s
         self.k_g = k_g
         self.R_fp = R_fp
@@ -1073,13 +1159,13 @@ class MultipleUTube(_BasePipe):
         self.config = config.lower()
 
         # Delta-circuit thermal resistances
-        self._Rd = thermal_resistances(pos, r_out, borehole.r_b,
-                                       k_s, k_g, self.R_fp, J=self.J)[1]
+        self._Rd = thermal_resistances(pos, r_out, borehole.r_b, k_s, k_g, self.R_fp, J=self.J)[1]
 
         # Initialize stored_coefficients
         self._initialize_stored_coefficients()
 
-    def _continuity_condition_base(self, m_flow, cp, nSegments):
+    def _continuity_condition_base(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray],
+                                   nSegments: int) -> tuple:
         """
         Equation that satisfies equal fluid temperatures in both legs of
         each U-tube pipe at depth (z = H).
@@ -1115,7 +1201,7 @@ class MultipleUTube(_BasePipe):
 
         # Coefficient matrices from continuity condition:
         # [b_u]*[T_{f,u}](z=0) = [b_d]*[T_{f,d}](z=0) + [b_b]*[T_b]
-        b_d, b_u, b_b = self._continuity_condition(m_flow, cp, nSegments)
+        b_d, b_u, b_b = self._continuity_condition(nSegments)
         b_u_m1 = np.linalg.inv(b_u)
 
         if self.config == 'parallel':
@@ -1125,8 +1211,8 @@ class MultipleUTube(_BasePipe):
 
             # Intermediate coefficient matrices:
             # [T_{f,out}] = d_u*[T_{f,u}](z=0)
-            mcp = self._m_flow_pipe[-self.nPipes:]*self._cp_pipe[-self.nPipes:]
-            d_u = np.reshape(mcp/np.sum(mcp), (1, -1))
+            mcp = self._m_flow_pipe[-self.nPipes:] * self._cp_pipe[-self.nPipes:]
+            d_u = np.reshape(mcp / np.sum(mcp), (1, -1))
 
             # Final coefficient matrices for continuity at depth (z = H):
             # [a_out][T_{f,out}] = [a_in]*[T_{f,in}] + [a_b]*[T_b]
@@ -1149,17 +1235,20 @@ class MultipleUTube(_BasePipe):
 
             # Intermediate coefficient matrices:
             # [T_{f,out}] = e_u*[T_{f,u}](z=0)
-            e_u = np.eye(self.nPipes, M=1, k=-self.nPipes+1).T
+            e_u = np.eye(self.nPipes, M=1, k=-self.nPipes + 1).T
 
             # Final coefficient matrices for continuity at depth (z = H):
             # [a_out][T_{f,out}] = [a_in]*[T_{f,in}] + [a_b]*[T_b]
             a_in = np.linalg.multi_dot([e_u, d_u_m1, d_in])
             a_out = np.array([[1.0]])
             a_b = np.linalg.multi_dot([e_u, d_u_m1, d_b])
+        else:
+            raise NotImplementedError("Configuration '{}' not implemented.".format(self.config))
 
         return a_in, a_out, a_b
 
-    def _continuity_condition_head(self, m_flow, cp, nSegments):
+    def _continuity_condition_head(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray],
+                                   nSegments: int) -> tuple:
         """
         Build coefficient matrices to evaluate fluid temperatures at depth
         (z = 0). These coefficients take into account connections between
@@ -1200,12 +1289,12 @@ class MultipleUTube(_BasePipe):
                               np.zeros((self.nPipes, self.nInlets))))
             a_out = np.vstack((np.zeros((self.nPipes, self.nOutlets)),
                                np.ones((self.nPipes, self.nOutlets))))
-            a_b = np.zeros((2*self.nPipes, nSegments))
+            a_b = np.zeros((2 * self.nPipes, nSegments))
 
         elif self.config == 'series':
             # Coefficient matrices from continuity condition:
             # [b_u]*[T_{f,u}](z=0) = [b_d]*[T_{f,d}](z=0) + [b_b]*[T_b]
-            b_d, b_u, b_b = self._continuity_condition(m_flow, cp, nSegments)
+            b_d, b_u, b_b = self._continuity_condition(nSegments)
 
             # Intermediate coefficient matrices:
             # [T_{f,d}](z=0) = [c_in]*[T_{f,in}] + [c_u]*[T_{f,u}](z=0)
@@ -1221,20 +1310,20 @@ class MultipleUTube(_BasePipe):
 
             # Intermediate coefficient matrices:
             # [T_f](z=0) = [e_d]*[T_{f,d}](z=0) + [e_u]*[T_{f,u}](z=0)
-            e_d = np.eye(2*self.nPipes, M=self.nPipes)
-            e_u = np.eye(2*self.nPipes, M=self.nPipes, k=-self.nPipes)
+            e_d = np.eye(2 * self.nPipes, M=self.nPipes)
+            e_u = np.eye(2 * self.nPipes, M=self.nPipes, k=-self.nPipes)
 
             # Final coefficient matrices for temperatures at depth (z = 0):
             # [T_f](z=0) = [a_in]*[T_{f,in}]+[a_out]*[T_{f,out}]+[a_b]*[T_b]
-            a_in = e_d.dot(c_in + np.linalg.multi_dot([c_u, d_u_m1, d_in])) \
-                + np.linalg.multi_dot([e_u, d_u_m1, d_in])
-            a_out = np.zeros((2*self.nPipes, self.nOutlets))
-            a_b = np.linalg.multi_dot([e_d, c_u, d_u_m1, d_b]) \
-                + np.linalg.multi_dot([e_u, d_u_m1, d_b])
+            a_in = e_d.dot(c_in + np.linalg.multi_dot([c_u, d_u_m1, d_in])) + np.linalg.multi_dot([e_u, d_u_m1, d_in])
+            a_out = np.zeros((2 * self.nPipes, self.nOutlets))
+            a_b = np.linalg.multi_dot([e_d, c_u, d_u_m1, d_b]) + np.linalg.multi_dot([e_u, d_u_m1, d_b])
+        else:
+            raise NotImplementedError("Configuration '{}' not implemented.".format(self.config))
 
         return a_in, a_out, a_b
 
-    def _continuity_condition(self, m_flow, cp, nSegments):
+    def _continuity_condition(self, nSegments: int) -> tuple:
         """
         Build coefficient matrices to evaluate fluid temperatures in downward
         and upward flowing pipes at depth (z = 0).
@@ -1249,10 +1338,6 @@ class MultipleUTube(_BasePipe):
 
         Parameters
         ----------
-        m_flow : float or array
-            Inlet mass flow rate (in kg/s).
-        cp : float or array
-            Fluid specific isobaric heat capacity (in J/kg.degC).
         nSegments : int
             Number of borehole segments.
 
@@ -1277,23 +1362,23 @@ class MultipleUTube(_BasePipe):
 
         # Matrix exponential at depth (z = H)
         H = self.b.H
-        E = (V.dot(np.diag(np.exp(L*H)))).dot(Vm1)
+        E = (V.dot(np.diag(np.exp(L * H)))).dot(Vm1)
 
         # Coefficient matrix for borehole wall temperatures
         IIm1 = np.hstack((np.eye(self.nPipes), -np.eye(self.nPipes)))
-        Ones = np.ones((2*self.nPipes, 1))
+        Ones = np.ones((2 * self.nPipes, 1))
         a_b = np.zeros((self.nPipes, nSegments))
         for v in range(nSegments):
-            z1 = H - v*H/nSegments
-            z2 = H - (v + 1)*H/nSegments
-            dE = np.diag(np.exp(L*z1) - np.exp(L*z2))
-            a_b[:, v:v+1] = np.linalg.multi_dot([IIm1,
-                                                 V,
-                                                 Dm1,
-                                                 dE,
-                                                 Vm1,
-                                                 A,
-                                                 Ones])
+            z1 = H - v * H / nSegments
+            z2 = H - (v + 1) * H / nSegments
+            dE = np.diag(np.exp(L * z1) - np.exp(L * z2))
+            a_b[:, v:v + 1] = np.linalg.multi_dot([IIm1,
+                                                   V,
+                                                   Dm1,
+                                                   dE,
+                                                   Vm1,
+                                                   A,
+                                                   Ones])
 
         # Configuration-specific inlet and outlet coefficient matrices
         IZER = np.vstack((np.eye(self.nPipes),
@@ -1305,7 +1390,8 @@ class MultipleUTube(_BasePipe):
 
         return a_d, a_u, a_b
 
-    def _general_solution(self, z, m_flow, cp, nSegments):
+    def _general_solution(self, z: Union[float, np.ndarray], m_flow: Union[float, np.ndarray],
+                          cp: Union[float, np.ndarray], nSegments: int) -> tuple:
         """
         General solution for fluid temperatures at a depth (z).
 
@@ -1318,6 +1404,8 @@ class MultipleUTube(_BasePipe):
 
         Parameters
         ----------
+        z : float or array
+            Depth (in meters) to evaluate the fluid temperature coefficients.
         m_flow : float or array
             Inlet mass flow rate (in kg/s).
         cp : float or array
@@ -1344,30 +1432,41 @@ class MultipleUTube(_BasePipe):
         Dm1 = self._Dm1
 
         # Matrix exponential at depth (z)
-        a_f0 = (V.dot(np.diag(np.exp(L*z)))).dot(Vm1)
+        a_f0 = (V.dot(np.diag(np.exp(L * z)))).dot(Vm1)
 
         # Coefficient matrix for borehole wall temperatures
-        a_b = np.zeros((2*self.nPipes, nSegments))
-        Ones = np.ones((2*self.nPipes, 1))
+        a_b = np.zeros((2 * self.nPipes, nSegments))
+        Ones = np.ones((2 * self.nPipes, 1))
         for v in range(nSegments):
-            dz1 = z - min(z, v*self.b.H/nSegments)
-            dz2 = z - min(z, (v + 1)*self.b.H/nSegments)
-            E1 = np.diag(np.exp(L*dz1))
-            E2 = np.diag(np.exp(L*dz2))
-            a_b[:,v:v+1] = np.linalg.multi_dot([V,
-                                                Dm1,
-                                                E2 - E1,
-                                                Vm1,
-                                                A,
-                                                Ones])
+            dz1 = z - min(z, v * self.b.H / nSegments)
+            dz2 = z - min(z, (v + 1) * self.b.H / nSegments)
+            E1 = np.diag(np.exp(L * dz1))
+            E2 = np.diag(np.exp(L * dz2))
+            a_b[:, v:v + 1] = np.linalg.multi_dot([V,
+                                                   Dm1,
+                                                   E2 - E1,
+                                                   Vm1,
+                                                   A,
+                                                   Ones])
 
         return a_f0, a_b
 
-    def _update_model_variables(self, m_flow, cp, nSegments):
+    def _update_model_variables(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray],
+                                nSegments: int) -> None:
         """
         Evaluate eigenvalues and eigenvectors for the system of differential
         equations.
+
+        Parameters
+        ----------
+        m_flow : float or array
+            Inlet mass flow rate (in kg/s).
+        cp : float or array
+            Fluid specific isobaric heat capacity (in J/kg.degC).
+        nSegments : int
+            Number of borehole segments.
         """
+
         nPipes = self.nPipes
         # Format mass flow rate and heat capacity inputs
         self._format_inputs(m_flow, cp, nSegments)
@@ -1376,10 +1475,10 @@ class MultipleUTube(_BasePipe):
 
         # Coefficient matrix for differential equations
         self._A = 1.0 / (self._Rd.T * m_flow_pipe * cp_pipe).T
-        for i in range(2*nPipes):
+        for i in range(2 * nPipes):
             self._A[i, i] = -self._A[i, i] - sum(
-                [self._A[i, j] for j in range(2*nPipes) if not i == j])
-        for i in range(nPipes, 2*nPipes):
+                    [self._A[i, j] for j in range(2 * nPipes) if not i == j])
+        for i in range(nPipes, 2 * nPipes):
             self._A[i, :] = - self._A[i, :]
         # Eigenvalues and eigenvectors of A
         self._L, self._V = np.linalg.eig(self._A)
@@ -1387,20 +1486,29 @@ class MultipleUTube(_BasePipe):
         self._Vm1 = np.linalg.inv(self._V)
         # Diagonal matrix of eigenvalues and inverse
         self._D = np.diag(self._L)
-        self._Dm1 = np.diag(1./self._L)
+        self._Dm1 = np.diag(1. / self._L)
 
-    def _format_inputs(self, m_flow, cp, nSegments):
+    def _format_inputs(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray], nSegments: int) -> None:
         """
         Format mass flow rate and heat capacity inputs.
+
+        Parameters
+        ----------
+        m_flow : float or array
+            Inlet mass flow rate (in kg/s).
+        cp : float or array
+            Fluid specific isobaric heat capacity (in J/kg.degC).
+        nSegments : int
+            Number of borehole segments.
         """
+
         nPipes = self.nPipes
         # Format mass flow rate inputs
         # Mass flow rate in pipes
         if self.config.lower() == 'parallel':
-            m_flow_pipe = np.tile(m_flow/nPipes, 2*self.nPipes)
+            self._m_flow_pipe = np.tile(m_flow / nPipes, 2 * self.nPipes)
         elif self.config.lower() == 'series':
-            m_flow_pipe = np.tile(m_flow, 2*self.nPipes)
-        self._m_flow_pipe = m_flow_pipe
+            self._m_flow_pipe = np.tile(m_flow, 2 * self.nPipes)
         # Mass flow rate in each fluid circuit
         m_flow_in = np.atleast_1d(m_flow)
         self._m_flow_in = m_flow_in
@@ -1410,7 +1518,7 @@ class MultipleUTube(_BasePipe):
         cp_in = np.atleast_1d(cp)
         self._cp_in = cp_in
         # Heat capacity in pipes
-        cp_pipe = np.tile(cp_in, 2*self.nPipes)
+        cp_pipe = np.tile(cp_in, 2 * self.nPipes)
         self._cp_pipe = cp_pipe
 
 
@@ -1430,7 +1538,7 @@ class IndependentMultipleUTube(MultipleUTube):
     r_in : float
         Inner radius (in meters) of the U-Tube pipes.
     r_out : float
-        Outter radius (in meters) of the U-Tube pipes.
+        Outer radius (in meters) of the U-Tube pipes.
     borehole : Borehole object
         Borehole class object of the borehole containing the U-Tube.
     k_s : float
@@ -1438,7 +1546,7 @@ class IndependentMultipleUTube(MultipleUTube):
     k_g : float
         Grout thermal conductivity (in W/m-K).
     R_fp : float
-        Fluid to outter pipe wall thermal resistance (m-K/W).
+        Fluid to outer pipe wall thermal resistance (m-K/W).
     J : int, optional
         Number of multipoles per pipe to evaluate the thermal resistances.
         Default is 2.
@@ -1456,28 +1564,21 @@ class IndependentMultipleUTube(MultipleUTube):
        Renewable Energy, 96, 137-147.
 
     """
-    def __init__(self, pos, r_in, r_out, borehole, k_s,
-                 k_g, R_fp, nPipes, J=2):
-        self.pos = pos
-        self.r_in = r_in
-        self.r_out = r_out
-        self.b = borehole
-        self.k_s = k_s
-        self.k_g = k_g
-        self.R_fp = R_fp
-        self.J = J
-        self.nPipes = nPipes
+
+    def __init__(self, pos: list, r_in: float, r_out: float, borehole: Borehole, k_s: float,
+                 k_g: float, R_fp: float, nPipes: int, J: int = 2):
+        MultipleUTube.__init__(self, pos, r_in, r_out, borehole, k_s, k_g, R_fp, nPipes, J=J)
         self.nInlets = nPipes
         self.nOutlets = nPipes
 
         # Delta-circuit thermal resistances
-        self._Rd = thermal_resistances(pos, r_out, borehole.r_b,
-                                       k_s, k_g, self.R_fp, J=self.J)[1]
+        self._Rd = thermal_resistances(pos, r_out, borehole.r_b, k_s, k_g, self.R_fp, J=self.J)[1]
 
         # Initialize stored_coefficients
         self._initialize_stored_coefficients()
 
-    def _continuity_condition_base(self, m_flow, cp, nSegments):
+    def _continuity_condition_base(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray],
+                                   nSegments: int) -> tuple:
         """
         Equation that satisfies equal fluid temperatures in both legs of
         each U-tube pipe at depth (z = H).
@@ -1513,11 +1614,12 @@ class IndependentMultipleUTube(MultipleUTube):
 
         # Coefficient matrices from continuity condition:
         # [b_u]*[T_{f,u}](z=0) = [b_d]*[T_{f,d}](z=0) + [b_b]*[T_b]
-        a_in, a_out, a_b = self._continuity_condition(m_flow, cp, nSegments)
+        a_in, a_out, a_b = self._continuity_condition(nSegments)
 
         return a_in, a_out, a_b
 
-    def _continuity_condition_head(self, m_flow, cp, nSegments):
+    def _continuity_condition_head(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray],
+                                   nSegments: int) -> tuple:
         """
         Build coefficient matrices to evaluate fluid temperatures at depth
         (z = 0). These coefficients take into account connections between
@@ -1553,13 +1655,14 @@ class IndependentMultipleUTube(MultipleUTube):
         # Check if model variables need to be updated
         self._check_model_variables(m_flow, cp, nSegments)
 
-        a_in = np.eye(2*self.nPipes, M=self.nPipes, k=0)
-        a_out = np.eye(2*self.nPipes, M=self.nPipes, k=-self.nPipes)
-        a_b = np.zeros((2*self.nPipes, nSegments))
+        a_in = np.eye(2 * self.nPipes, M=self.nPipes, k=0)
+        a_out = np.eye(2 * self.nPipes, M=self.nPipes, k=-self.nPipes)
+        a_b = np.zeros((2 * self.nPipes, nSegments))
 
         return a_in, a_out, a_b
 
-    def _format_inputs(self, m_flow, cp, nSegments):
+    def _format_inputs(self, m_flow: Union[float, np.ndarray], cp: Union[float, np.ndarray],
+                       nSegments: int):
         """
         Format mass flow rate and heat capacity inputs.
         """
@@ -1580,7 +1683,8 @@ class IndependentMultipleUTube(MultipleUTube):
         self._cp_pipe = cp_pipe
 
 
-def thermal_resistances(pos, r_out, r_b, k_s, k_g, Rfp, J=2):
+def thermal_resistances(pos: list, r_out: Union[float, np.ndarray], r_b: float,
+                        k_s: float, k_g: float, Rfp: Union[float, np.ndarray], J: int = 2) -> tuple:
     """
     Evaluate thermal resistances and delta-circuit thermal resistances.
 
@@ -1628,6 +1732,7 @@ def thermal_resistances(pos, r_out, r_b, k_s, k_g, Rfp, J=2):
 
     Examples
     --------
+    >>> import pygfunction as gt
     >>> pos = [(-0.06, 0.), (0.06, 0.)]
     >>> R, Rd = gt.pipes.thermal_resistances(pos, 0.01, 0.075, 2., 1., 0.1,
                                              J=0)
@@ -1650,14 +1755,14 @@ def thermal_resistances(pos, r_out, r_b, k_s, k_g, Rfp, J=2):
     n_p = len(pos)
     # If r_out and/or Rfp are supplied as float, build arrays of size n_p
     if np.isscalar(r_out):
-        r_out = np.ones(n_p)*r_out
+        r_out = np.ones(n_p) * r_out
     if np.isscalar(Rfp):
-        Rfp = np.ones(n_p)*Rfp
+        Rfp = np.ones(n_p) * Rfp
 
     R = np.zeros((n_p, n_p))
     if J == 0:
         # Line source approximation
-        sigma = (k_g - k_s)/(k_g + k_s)
+        sigma = (k_g - k_s) / (k_g + k_s)
         for i in range(n_p):
             xi = pos[i][0]
             yi = pos[i][1]
@@ -1666,39 +1771,37 @@ def thermal_resistances(pos, r_out, r_b, k_s, k_g, Rfp, J=2):
                 yj = pos[j][1]
                 if i == j:
                     # Same-pipe thermal resistance
-                    r = np.sqrt(xi**2 + yi**2)
-                    R[i, j] = Rfp[i] + 1./(2.*pi*k_g) \
-                        *(np.log(r_b/r_out[i]) - sigma*np.log(1 - r**2/r_b**2))
+                    r = np.sqrt(xi ** 2 + yi ** 2)
+                    R[i, j] = Rfp[i] + 1. / (2. * pi * k_g) \
+                              * (np.log(r_b / r_out[i]) - sigma * np.log(1 - r ** 2 / r_b ** 2))
                 else:
                     # Pipe to pipe thermal resistance
-                    r = np.sqrt((xi-xj)**2 + (yi-yj)**2)
-                    ri = np.sqrt(xi**2 + yi**2)
-                    rj = np.sqrt(xj**2 + yj**2)
-                    dij = np.sqrt((1. - ri**2/r_b**2)*(1.-rj**2/r_b**2) +
-                                  r**2/r_b**2)
-                    R[i, j] = -1./(2.*pi*k_g) \
-                        *(np.log(r/r_b) + sigma*np.log(dij))
+                    r = np.sqrt((xi - xj) ** 2 + (yi - yj) ** 2)
+                    ri = np.sqrt(xi ** 2 + yi ** 2)
+                    rj = np.sqrt(xj ** 2 + yj ** 2)
+                    dij = np.sqrt((1. - ri ** 2 / r_b ** 2) * (1. - rj ** 2 / r_b ** 2) +
+                                  r ** 2 / r_b ** 2)
+                    R[i, j] = -1. / (2. * pi * k_g) * (np.log(r / r_b) + sigma * np.log(dij))
     else:
         # Resistances from multipole method are evaluated from the solution of
         # n_p problems
         for m in range(n_p):
             Q_p = np.zeros(n_p)
             Q_p[m] = 1.0
-            (T_f, T, it, eps_max) = multipole(pos, r_out, r_b, k_s, k_g,
-                                              Rfp, 0., Q_p, J)
-            R[:,m] = T_f
+            (T_f, T, it, eps_max) = multipole(pos, r_out, r_b, k_s, k_g, Rfp, 0., Q_p, J)
+            R[:, m] = T_f
 
     # Delta-circuit thermal resistances
     K = -np.linalg.inv(R)
     for i in range(n_p):
         K[i, i] = -(K[i, i] +
                     sum([K[i, j] for j in range(n_p) if not i == j]))
-    Rd = 1.0/K
+    Rd = 1.0 / K
 
     return R, Rd
 
 
-def borehole_thermal_resistance(pipe, m_flow, cp):
+def borehole_thermal_resistance(pipe: Union[SingleUTube, MultipleUTube], m_flow: float, cp: float) -> float:
     """
     Evaluate the effective borehole thermal resistance.
 
@@ -1718,20 +1821,19 @@ def borehole_thermal_resistance(pipe, m_flow, cp):
 
     """
     # Coefficient for T_{f,out} = a_out*T_{f,in} + [b_out]*[T_b]
-    a_out = np.asscalar(
-            pipe.coefficients_outlet_temperature(m_flow, cp, nSegments=1)[0])
+    a_out = pipe.coefficients_outlet_temperature(m_flow, cp, nSegments=1)[0].item()
     # Coefficient for Q_b = [a_Q]*T{f,in} + [b_Q]*[T_b]
-    a_Q = np.asscalar(pipe.coefficients_borehole_heat_extraction_rate(
-            m_flow, cp, nSegments=1)[0])
+    a_Q = pipe.coefficients_borehole_heat_extraction_rate(m_flow, cp, nSegments=1)[0].item()
     # Borehole length
     H = pipe.b.H
     # Effective borehole thermal resistance
-    Rb = -0.5*H*(1. + a_out)/a_Q
+    Rb = -0.5 * H * (1. + a_out) / a_Q
 
     return Rb
 
 
-def field_thermal_resistance(pipes, bore_connectivity, m_flow, cp):
+def field_thermal_resistance(pipes: list, bore_connectivity: list,
+                             m_flow: Union[float, np.ndarray], cp: float) -> float:
     """
     Evaluate the effective bore field thermal resistance.
 
@@ -1776,29 +1878,25 @@ def field_thermal_resistance(pipes, bore_connectivity, m_flow, cp):
     # Verify that borehole connectivity is valid
     _verify_bore_connectivity(bore_connectivity, nBoreholes)
 
-
     # Coefficients for T_{f,out} = A_out*T_{f,in} + [B_out]*[T_b], and
     # Q_b = [A_Q]*T{f,in} + [B_Q]*[T_b]
-    A_Q = np.array([np.asscalar(
-            pipes[i].coefficients_borehole_heat_extraction_rate(
-                    m_flow[i], cp, nSegments=1)[0])
-            for i in range(len(pipes))])
+    A_Q = np.array([pipes[i].coefficients_borehole_heat_extraction_rate(m_flow[i], cp, nSegments=1)[0].item()
+                    for i in range(len(pipes))])
     for i in range(len(pipes)):
         path = _path_to_inlet(bore_connectivity, i)
         for j in path[1:]:
-            a_out = np.asscalar(pipes[j].coefficients_outlet_temperature(
-                    m_flow[j], cp, nSegments=1)[0])
-            A_Q[i] = A_Q[i]*a_out
-    A_out = 1. + np.sum(A_Q)/(m_flow_tot*cp)
+            a_out = pipes[j].coefficients_outlet_temperature(m_flow[j], cp, nSegments=1)[0].item()
+            A_Q[i] = A_Q[i] * a_out
+    A_out = 1. + np.sum(A_Q) / (m_flow_tot * cp)
 
     # Effective bore field thermal resistance
-    Rfield = -0.5*H_tot*(1. + A_out)/np.sum(A_Q)
+    Rfield = -0.5 * H_tot * (1. + A_out) / np.sum(A_Q)
 
     return Rfield
 
 
-def fluid_friction_factor_circular_pipe(m_flow, r_in, visc, den, epsilon,
-                                        tol=1.0e-6):
+def fluid_friction_factor_circular_pipe(m_flow: float, r_in: float, visc: float,
+                                        den: float, epsilon: float, tol: float = 1.0e-6) -> float:
     """
     Evaluate the Darcy-Weisbach friction factor.
 
@@ -1828,12 +1926,12 @@ def fluid_friction_factor_circular_pipe(m_flow, r_in, visc, den, epsilon,
 
     """
     # Hydraulic diameter
-    D = 2.*r_in
+    D = 2. * r_in
     # Relative roughness
     E = epsilon / D
     # Fluid velocity
     V_flow = m_flow / den
-    A_cs = pi * r_in**2
+    A_cs = pi * r_in ** 2
     V = V_flow / A_cs
     # Reynolds number
     Re = den * V * D / visc
@@ -1845,18 +1943,18 @@ def fluid_friction_factor_circular_pipe(m_flow, r_in, visc, den, epsilon,
         # Colebrook-White equation for rough pipes
         fDarcy = 0.02
         df = 1.0e99
-        while abs(df/fDarcy) > tol:
+        while abs(df / fDarcy) > tol:
             one_over_sqrt_f = -2.0 * np.log10(E / 3.7
-                                              + 2.51/(Re*np.sqrt(fDarcy)))
-            fDarcy_new = 1.0 / one_over_sqrt_f**2
+                                              + 2.51 / (Re * np.sqrt(fDarcy)))
+            fDarcy_new = 1.0 / one_over_sqrt_f ** 2
             df = fDarcy_new - fDarcy
             fDarcy = fDarcy_new
 
     return fDarcy
 
 
-def convective_heat_transfer_coefficient_circular_pipe(m_flow, r_in, visc, den,
-                                                       k, cp, epsilon):
+def convective_heat_transfer_coefficient_circular_pipe(m_flow: float, r_in: float, visc: float, den: float,
+                                                       k: float, cp: float, epsilon: float) -> float:
     """
     Evaluate the convective heat transfer coefficient for circular pipes.
 
@@ -1887,22 +1985,20 @@ def convective_heat_transfer_coefficient_circular_pipe(m_flow, r_in, visc, den,
 
     """
     # Hydraulic diameter
-    D = 2.*r_in
+    D = 2. * r_in
     # Fluid velocity
     V_flow = m_flow / den
-    A_cs = pi * r_in**2
+    A_cs = pi * r_in ** 2
     V = V_flow / A_cs
     # Reynolds number
     Re = den * V * D / visc
     # Prandtl number
     Pr = cp * visc / k
     # Darcy friction factor
-    fDarcy = fluid_friction_factor_circular_pipe(m_flow, r_in, visc, den,
-                                                 epsilon)
+    fDarcy = fluid_friction_factor_circular_pipe(m_flow, r_in, visc, den, epsilon)
     if Re > 2300.:
         # Nusselt number from Gnielinski
-        Nu = 0.125*fDarcy * (Re - 1.0e3) * Pr / \
-            (1.0 + 12.7 * np.sqrt(0.125*fDarcy) * (Pr**(2.0/3.0) - 1.0))
+        Nu = 0.125 * fDarcy * (Re - 1.0e3) * Pr / (1.0 + 12.7 * np.sqrt(0.125 * fDarcy) * (Pr ** (2.0 / 3.0) - 1.0))
     else:
         Nu = 3.66
     h_fluid = k * Nu / D
@@ -1910,7 +2006,7 @@ def convective_heat_transfer_coefficient_circular_pipe(m_flow, r_in, visc, den,
     return h_fluid
 
 
-def conduction_thermal_resistance_circular_pipe(r_in, r_out, k):
+def conduction_thermal_resistance_circular_pipe(r_in: float, r_out: float, k: float) -> float:
     """
     Evaluate the conduction thermal resistance for circular pipes.
 
@@ -1932,14 +2028,14 @@ def conduction_thermal_resistance_circular_pipe(r_in, r_out, k):
     --------
 
     """
-    R_pipe = np.log(r_out/r_in)/(2*pi*k)
+    R_pipe = np.log(r_out / r_in) / (2 * pi * k)
 
     return R_pipe
 
 
-def multipole(pos, r_p, r_b, k_s, k_g, Rfp, T_b, Q_p, J,
-              x_T=np.empty(0), y_T=np.empty(0),
-              eps=1e-5, it_max=100):
+def multipole(pos: list, r_p: Union[float, np.ndarray], r_b: float, k_s: float, k_g: float,
+              Rfp: Union[float, np.ndarray], T_b: float, Q_p: np.ndarray, J: int, x_T: np.ndarray = np.empty(0),
+              y_T: np.ndarray = np.empty(0), eps: float = 1e-5, it_max: int = 100) -> tuple:
     """
     Multipole method to calculate borehole thermal resistances in a borehole
     heat exchanger.
@@ -1967,7 +2063,7 @@ def multipole(pos, r_p, r_b, k_s, k_g, Rfp, T_b, Q_p, J,
         line source approximation.
     Q_p : array
         Thermal energy flows (in W/m) from pipes.
-    T_b_av : float
+    T_b : float
         Average borehole wall temperature (in degC).
     eps : float, optional
         Iteration relative accuracy.
@@ -2002,28 +2098,28 @@ def multipole(pos, r_p, r_b, k_s, k_g, Rfp, T_b, Q_p, J,
     """
     # Pipe coordinates in complex form
     n_p = len(pos)
-    z_p = np.array([pos[i][0] + 1.j*pos[i][1] for i in range(n_p)])
+    z_p = np.array([pos[i][0] + 1.j * pos[i][1] for i in range(n_p)])
     # If r_out and/or Rfp are supplied as float, build arrays of size n_p
     if np.isscalar(r_p):
-        r_p = np.ones(n_p)*r_p
+        r_p = np.ones(n_p) * r_p
     if np.isscalar(Rfp):
-        Rfp = np.ones(n_p)*Rfp
+        Rfp = np.ones(n_p) * Rfp
 
     # -------------------------------------
     # Thermal resistance matrix R0 (EQ. 33)
     # -------------------------------------
-    pikg = 1.0 / (2.0*pi*k_g)
-    sigma = (k_g - k_s)/(k_g + k_s)
-    beta_p = 2*pi*k_g*Rfp
+    pikg = 1.0 / (2.0 * pi * k_g)
+    sigma = (k_g - k_s) / (k_g + k_s)
+    beta_p = 2 * pi * k_g * Rfp
     R0 = np.zeros((n_p, n_p))
     for i in range(n_p):
-        rbm = r_b**2/(r_b**2 - np.abs(z_p[i])**2)
-        R0[i, i] = pikg*(np.log(r_b/r_p[i]) + beta_p[i] + sigma*np.log(rbm))
+        rbm = r_b ** 2 / (r_b ** 2 - np.abs(z_p[i]) ** 2)
+        R0[i, i] = pikg * (np.log(r_b / r_p[i]) + beta_p[i] + sigma * np.log(rbm))
         for j in range(n_p):
             if i != j:
                 dz = np.abs(z_p[i] - z_p[j])
-                rbm = r_b**2/np.abs(r_b**2 - z_p[j]*np.conj(z_p[i]))
-                R0[i, j] = pikg*(np.log(r_b/dz) + sigma*np.log(rbm))
+                rbm = r_b ** 2 / np.abs(r_b ** 2 - z_p[j] * np.conj(z_p[i]))
+                R0[i, j] = pikg * (np.log(r_b / dz) + sigma * np.log(rbm))
 
     # Initialize maximum error and iteration counter
     eps_max = 1.0e99
@@ -2033,18 +2129,21 @@ def multipole(pos, r_p, r_b, k_s, k_g, Rfp, T_b, Q_p, J,
     # -------------------
     if J > 0:
         P = np.zeros((n_p, J), dtype=np.cfloat)
-        coeff = -np.array([[(1 - (k+1)*beta_p[m])/(1 + (k+1)*beta_p[m])
-                           for k in range(J)] for m in range(n_p)])
+        coeff = -np.array([[(1 - (k + 1) * beta_p[m]) / (1 + (k + 1) * beta_p[m])
+                            for k in range(J)] for m in range(n_p)])
         while eps_max > eps and it < it_max:
             it += 1
-            eps_max = 0.
             F = _F_mk(Q_p, P, n_p, J, r_b, r_p, z_p, pikg, sigma)
-            P_new = coeff*np.conj(F)
+            P_new = coeff * np.conj(F)
             if it == 1:
-                diff0 = np.max(np.abs(P_new-P)) - np.min(np.abs(P_new-P))
-            diff = np.max(np.abs(P_new-P)) - np.min(np.abs(P_new-P))
+                diff0 = np.max(np.abs(P_new - P)) - np.min(np.abs(P_new - P))
+            # else:
+            #     diff0 = ? catch when "it" != 1
+            diff = np.max(np.abs(P_new - P)) - np.min(np.abs(P_new - P))
             eps_max = diff / diff0
             P = P_new
+    # else:
+    #     What here? It's complaining that "P" may be uninitialized
 
     # --------------------------
     # Fluid temperatures(EQ. 32)
@@ -2057,10 +2156,10 @@ def multipole(pos, r_p, r_b, k_s, k_g, Rfp, T_b, Q_p, J,
                 for j in range(J):
                     # Second term
                     if n != m:
-                        dTfm += P[n,j]*(r_p[n]/(z_p[m]-z_p[n]))**(j+1)
+                        dTfm += P[n, j] * (r_p[n] / (z_p[m] - z_p[n])) ** (j + 1)
                     # Third term
-                    dTfm += sigma*P[n,j]*(r_p[n]*np.conj(z_p[m]) \
-                                   /(r_b**2 - z_p[n]*np.conj(z_p[m])))**(j+1)
+                    dTfm += sigma * P[n, j] * (r_p[n] * np.conj(z_p[m])
+                                               / (r_b ** 2 - z_p[n] * np.conj(z_p[m]))) ** (j + 1)
             T_f[m] += np.real(dTfm)
 
     # -------------------------------
@@ -2069,44 +2168,46 @@ def multipole(pos, r_p, r_b, k_s, k_g, Rfp, T_b, Q_p, J,
     n_T = len(x_T)
     T = np.zeros(n_T)
     for i in range(n_T):
-        z_T = x_T[i] + 1.j*y_T[i]
+        z_T = x_T[i] + 1.j * y_T[i]
         dT0 = 0. + 0.j
         dTJ = 0. + 0.j
         for n in range(n_p):
-            if np.abs(z_T - z_p[n])/r_p[n] < 1.0:
+            if np.abs(z_T - z_p[n]) / r_p[n] < 1.0:
                 # Coordinate inside pipe
                 T[i] = T_f[n]
                 break
             # Order 0
             if np.abs(z_T) <= r_b:
                 # Coordinate inside borehole
-                W0 = np.log(r_b/(z_T - z_p[n])) \
-                        + sigma*np.log(r_b**2/(r_b**2 - z_p[n]*np.conj(z_T)))
+                W0 = np.log(r_b / (z_T - z_p[n])) + sigma * np.log(r_b ** 2 / (r_b ** 2 - z_p[n] * np.conj(z_T)))
             else:
                 # Coordinate outside borehole
-                W0 = (1. + sigma)*np.log(r_b/(z_T - z_p[n])) \
-                        + sigma*(1. + sigma)/(1. - sigma)*np.log(r_b/z_T)
-            dT0 += Q_p[n]*pikg*W0
+                W0 = (1. + sigma) * np.log(r_b / (z_T - z_p[n])) \
+                     + sigma * (1. + sigma) / (1. - sigma) * np.log(r_b / z_T)
+            dT0 += Q_p[n] * pikg * W0
             # Multipoles
             for j in range(J):
                 if np.abs(z_T) <= r_b:
                     # Coordinate inside borehole
-                    WJ = (r_p[n]/(z_T - z_p[n]))**(j+1) \
-                            + sigma*((r_p[n]*np.conj(z_T))
-                                     /(r_b**2 - z_p[n]*np.conj(z_T)))**(j+1)
+                    WJ = (r_p[n] / (z_T - z_p[n])) ** (j + 1) \
+                         + sigma * ((r_p[n] * np.conj(z_T)) / (r_b ** 2 - z_p[n] * np.conj(z_T))) ** (j + 1)
                 else:
                     # Coordinate outside borehole
-                    WJ = (1. + sigma)*(r_p[n]/(z_T - z_p[n]))**(j+1)
-                dTJ += P[n,j]*WJ
+                    WJ = (1. + sigma) * (r_p[n] / (z_T - z_p[n])) ** (j + 1)
+                dTJ += P[n, j] * WJ
         else:
             T[i] += T_b + np.real(dT0 + dTJ)
 
     return T_f, T, it, eps_max
 
 
-def _F_mk(Q_p, P, n_p, J, r_b, r_p, z, pikg, sigma):
+def _F_mk(Q_p: np.ndarray, P: np.ndarray, n_p: int, J: int, r_b: float,
+          r_p: np.ndarray, z: np.ndarray, pikg: float, sigma: float) -> np.ndarray:
     """
     Complex matrix F_mk from Claesson and Hellstrom (2011), EQ. 34
+
+    Doc string here
+
     """
     F = np.zeros((n_p, J), dtype=np.cfloat)
     for m in range(n_p):
@@ -2115,24 +2216,24 @@ def _F_mk(Q_p, P, n_p, J, r_b, r_p, z, pikg, sigma):
             for n in range(n_p):
                 # First term
                 if m != n:
-                    fmk += Q_p[n]*pikg/(k+1)*(r_p[m]/(z[n] - z[m]))**(k+1)
+                    fmk += Q_p[n] * pikg / (k + 1) * (r_p[m] / (z[n] - z[m])) ** (k + 1)
                 # Second term
-                fmk += sigma*Q_p[n]*pikg/(k+1)*(r_p[m]*np.conj(z[n])/(
-                        r_b**2 - z[m]*np.conj(z[n])))**(k+1)
+                fmk += sigma * Q_p[n] * pikg / (k + 1) * (r_p[m] * np.conj(z[n]) / (
+                        r_b ** 2 - z[m] * np.conj(z[n]))) ** (k + 1)
                 for j in range(J):
                     # Third term
                     if m != n:
-                        fmk += P[n,j]*binom(j+k+1, j) \
-                                *r_p[n]**(j+1)*(-r_p[m])**(k+1) \
-                                /(z[m] - z[n])**(j+k+2)
+                        fmk += P[n, j] * binom(j + k + 1, j) \
+                               * r_p[n] ** (j + 1) * (-r_p[m]) ** (k + 1) \
+                               / (z[m] - z[n]) ** (j + k + 2)
                     # Fourth term
                     j_pend = np.min((k, j)) + 2
                     for jp in range(j_pend):
-                        fmk += sigma*np.conj(P[n,j])*binom(j+1, jp) \
-                                *binom(j+k-jp+1, j)*r_p[n]**(j+1) \
-                                *r_p[m]**(k+1)*z[m]**(j+1-jp) \
-                                *np.conj(z[n])**(k+1-jp) \
-                                /(r_b**2 - z[m]*np.conj(z[n]))**(k+j+2-jp)
-            F[m,k] = fmk
+                        fmk += sigma * np.conj(P[n, j]) * binom(j + 1, jp) \
+                               * binom(j + k - jp + 1, j) * r_p[n] ** (j + 1) \
+                               * r_p[m] ** (k + 1) * z[m] ** (j + 1 - jp) \
+                               * np.conj(z[n]) ** (k + 1 - jp) \
+                               / (r_b ** 2 - z[m] * np.conj(z[n])) ** (k + j + 2 - jp)
+            F[m, k] = fmk
 
     return F

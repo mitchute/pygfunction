@@ -11,11 +11,11 @@
     compared.
 
 """
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import AutoMinorLocator
 import numpy as np
+from matplotlib.ticker import AutoMinorLocator
 from scipy.constants import pi
 
 import pygfunction as gt
@@ -27,15 +27,15 @@ def main():
     # -------------------------------------------------------------------------
 
     # Borehole dimensions
-    D = 4.0             # Borehole buried depth (m)
-    H = 150.0           # Borehole length (m)
-    r_b = 0.075         # Borehole radius (m)
+    D = 4.0  # Borehole buried depth (m)
+    H = 150.0  # Borehole length (m)
+    r_b = 0.075  # Borehole radius (m)
 
     # Pipe dimensions
-    rp_out = 0.0211     # Pipe outer radius (m)
-    rp_in = 0.0147      # Pipe inner radius (m)
-    D_s = 0.052         # Shank spacing (m)
-    epsilon = 1.0e-6    # Pipe roughness (m)
+    rp_out = 0.0211  # Pipe outer radius (m)
+    rp_in = 0.0147  # Pipe inner radius (m)
+    D_s = 0.052  # Shank spacing (m)
+    epsilon = 1.0e-6  # Pipe roughness (m)
 
     # Pipe positions
     # Single U-tube [(x_in, y_in), (x_out, y_out)]
@@ -47,30 +47,30 @@ def main():
     pos_double = [(-D_s, 0.), (0., -D_s), (D_s, 0.), (0., D_s)]
 
     # Ground properties
-    alpha = 1.0e-6      # Ground thermal diffusivity (m2/s)
-    k_s = 2.0           # Ground thermal conductivity (W/m.K)
-    T_g = 10.0          # Undisturbed ground temperature (degC)
+    alpha = 1.0e-6  # Ground thermal diffusivity (m2/s)
+    k_s = 2.0  # Ground thermal conductivity (W/m.K)
+    T_g = 10.0  # Undisturbed ground temperature (degC)
 
     # Grout properties
-    k_g = 1.0           # Grout thermal conductivity (W/m.K)
+    k_g = 1.0  # Grout thermal conductivity (W/m.K)
 
     # Pipe properties
-    k_p = 0.4           # Pipe thermal conductivity (W/m.K)
+    k_p = 0.4  # Pipe thermal conductivity (W/m.K)
 
     # Fluid properties
-    m_flow = 0.25       # Total fluid mass flow rate (kg/s)
-    cp_f = 3977.        # Fluid specific isobaric heat capacity (J/kg.K)
-    den_f = 1015.       # Fluid density (kg/m3)
-    visc_f = 0.00203    # Fluid dynamic viscosity (kg/m.s)
-    k_f = 0.492         # Fluid thermal conductivity (W/m.K)
+    m_flow = 0.25  # Total fluid mass flow rate (kg/s)
+    cp_f = 3977.  # Fluid specific isobaric heat capacity (J/kg.K)
+    den_f = 1015.  # Fluid density (kg/m3)
+    visc_f = 0.00203  # Fluid dynamic viscosity (kg/m.s)
+    k_f = 0.492  # Fluid thermal conductivity (W/m.K)
 
     # Number of segments per borehole
     nSegments = 12
 
     # Simulation parameters
-    dt = 3600.                  # Time step (s)
-    tmax = 1.*8760. * 3600.     # Maximum time (s)
-    Nt = int(np.ceil(tmax/dt))  # Number of time steps
+    dt = 3600.  # Time step (s)
+    tmax = 1. * 8760. * 3600.  # Maximum time (s)
+    Nt = int(np.ceil(tmax / dt))  # Number of time steps
 
     # Load aggregation scheme
     LoadAgg = gt.load_aggregation.ClaessonJaved(dt, tmax)
@@ -88,7 +88,7 @@ def main():
     gFunc = gt.gfunction.uniform_temperature(boreField, time_req, alpha,
                                              nSegments=nSegments)
     # Initialize load aggregation scheme
-    LoadAgg.initialize(gFunc/(2*pi*k_s))
+    LoadAgg.initialize(gFunc / (2 * pi * k_s))
 
     # -------------------------------------------------------------------------
     # Initialize pipe models
@@ -107,16 +107,16 @@ def main():
                                                                       k_f,
                                                                       cp_f,
                                                                       epsilon)
-    R_f_ser = 1.0/(h_f*2*pi*rp_in)
+    R_f_ser = 1.0 / (h_f * 2 * pi * rp_in)
     # Fluid to inner pipe wall thermal resistance (Double U-tube in parallel)
-    h_f = gt.pipes.convective_heat_transfer_coefficient_circular_pipe(m_flow/2,
+    h_f = gt.pipes.convective_heat_transfer_coefficient_circular_pipe(m_flow / 2,
                                                                       rp_in,
                                                                       visc_f,
                                                                       den_f,
                                                                       k_f,
                                                                       cp_f,
                                                                       epsilon)
-    R_f_par = 1.0/(h_f*2*pi*rp_in)
+    R_f_par = 1.0 / (h_f * 2 * pi * rp_in)
 
     # Single U-tube
     SingleUTube = gt.pipes.SingleUTube(pos_single, rp_in, rp_out,
@@ -151,10 +151,10 @@ def main():
         LoadAgg.next_time_step(time)
 
         # Evaluate heat extraction rate
-        Q[i] = synthetic_load(time/3600.)
+        Q[i] = synthetic_load(time / 3600.)
 
         # Apply current load
-        LoadAgg.set_current_load(Q[i]/H)
+        LoadAgg.set_current_load(Q[i] / H)
 
         # Evaluate borehole wall temperature
         deltaT_b = LoadAgg.temporal_superposition()
@@ -170,11 +170,11 @@ def main():
 
         # Evaluate outlet fluid temperature
         T_f_out_single[i] = SingleUTube.get_outlet_temperature(
-                T_f_in_single[i],  T_b[i], m_flow, cp_f)
+                T_f_in_single[i], T_b[i], m_flow, cp_f)
         T_f_out_double_par[i] = DoubleUTube_par.get_outlet_temperature(
-                T_f_in_double_par[i],  T_b[i], m_flow, cp_f)
+                T_f_in_double_par[i], T_b[i], m_flow, cp_f)
         T_f_out_double_ser[i] = DoubleUTube_ser.get_outlet_temperature(
-                T_f_in_double_ser[i],  T_b[i], m_flow, cp_f)
+                T_f_in_double_ser[i], T_b[i], m_flow, cp_f)
 
     # -------------------------------------------------------------------------
     # Plot hourly heat extraction rates and temperatures
@@ -187,7 +187,7 @@ def main():
     # Axis labels
     ax1.set_xlabel(r'Time (hours)')
     ax1.set_ylabel(r'Total heat extraction rate (W)')
-    hours = np.array([(j+1)*dt/3600. for j in range(Nt)])
+    hours = np.array([(j + 1) * dt / 3600. for j in range(Nt)])
     # Plot heat extraction rates
     ax1.plot(hours, Q, 'b-', lw=1.5)
 
@@ -298,15 +298,15 @@ def synthetic_load(x):
     F = 0.0
     G = 0.95
 
-    func = (168.0-C)/168.0
+    func = (168.0 - C) / 168.0
     for i in [1, 2, 3]:
-        func += 1.0/(i*pi)*(np.cos(C*pi*i/84.0)-1.0) \
-                          *(np.sin(pi*i/84.0*(x-B)))
-    func = func*A*np.sin(pi/12.0*(x-B)) \
-           *np.sin(pi/4380.0*(x-B))
+        func += 1.0 / (i * pi) * (np.cos(C * pi * i / 84.0) - 1.0) \
+                * (np.sin(pi * i / 84.0 * (x - B)))
+    func = func * A * np.sin(pi / 12.0 * (x - B)) \
+           * np.sin(pi / 4380.0 * (x - B))
 
-    y = func + (-1.0)**np.floor(D/8760.0*(x-B))*abs(func) \
-      + E*(-1.0)**np.floor(D/8760.0*(x-B))/np.sign(np.cos(D*pi/4380.0*(x-F))+G)
+    y = func + (-1.0) ** np.floor(D / 8760.0 * (x - B)) * abs(func) \
+        + E * (-1.0) ** np.floor(D / 8760.0 * (x - B)) / np.sign(np.cos(D * pi / 4380.0 * (x - F)) + G)
     return -y
 
 

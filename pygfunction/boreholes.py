@@ -1,4 +1,6 @@
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
+
+from typing import Union
 
 import numpy as np
 from scipy.constants import pi
@@ -13,7 +15,7 @@ class Borehole(object):
     H : float
         Borehole length (in meters).
     D : float
-        Borehole burried depth (in meters).
+        Borehole buried depth (in meters).
     r_b : float
         Borehole radius (in meters).
     x : float
@@ -26,12 +28,13 @@ class Borehole(object):
         Direction (in radians) of the tilt of the borehole.
 
     """
-    def __init__(self, H, D, r_b, x, y, tilt=0., orientation=0.):
-        self.H = float(H)      # Borehole length
-        self.D = float(D)      # Borehole buried depth
+    def __init__(self, H: Union[int, float], D: Union[int, float], r_b: Union[int, float], x: Union[int, float],
+                 y: Union[int, float], tilt: Union[int, float] = 0., orientation: Union[int, float] = 0.):
+        self.H = float(H)  # Borehole length
+        self.D = float(D)  # Borehole buried depth
         self.r_b = float(r_b)  # Borehole radius
-        self.x = float(x)      # Borehole x coordinate position
-        self.y = float(y)      # Borehole y coordinate position
+        self.x = float(x)  # Borehole x coordinate position
+        self.y = float(y)  # Borehole y coordinate position
         self.tilt = float(tilt)
         self.orientation = float(orientation)
 
@@ -41,7 +44,7 @@ class Borehole(object):
              ' orientation={self.orientation})').format(self=self)
         return s
 
-    def distance(self, target):
+    def distance(self, target) -> float:
         """
         Evaluate the distance between the current borehole and a target
         borehole.
@@ -63,6 +66,7 @@ class Borehole(object):
 
         Examples
         --------
+        >>> import pygfunction as gt
         >>> b1 = gt.boreholes.Borehole(H=150., D=4., r_b=0.075, x=0., y=0.)
         >>> b2 = gt.boreholes.Borehole(H=150., D=4., r_b=0.075, x=5., y=0.)
         >>> b1.distance(b2)
@@ -70,10 +74,10 @@ class Borehole(object):
 
         """
         dis = max(self.r_b,
-                  np.sqrt((self.x - target.x)**2 + (self.y - target.y)**2))
+                  np.sqrt((self.x - target.x) ** 2 + (self.y - target.y) ** 2))
         return dis
 
-    def position(self):
+    def position(self) -> tuple:
         """
         Returns the position of the borehole.
 
@@ -92,6 +96,7 @@ class Borehole(object):
 
         Examples
         --------
+        >>> >>> import pygfunction as gt
         >>> b1 = gt.boreholes.Borehole(H=150., D=4., r_b=0.075, x=5., y=0.)
         >>> b1.position()
         (5.0, 0.0)
@@ -101,7 +106,7 @@ class Borehole(object):
         return pos
 
 
-def rectangle_field(N_1, N_2, B_1, B_2, H, D, r_b):
+def rectangle_field(N_1: int, N_2: int, B_1: float, B_2: float, H: float, D: float, r_b: float) -> list:
     """
     Build a list of boreholes in a rectangular bore field configuration.
 
@@ -118,7 +123,7 @@ def rectangle_field(N_1, N_2, B_1, B_2, H, D, r_b):
     H : float
         Borehole length (in meters).
     D : float
-        Borehole burried depth (in meters).
+        Borehole buried depth (in meters).
     r_b : float
         Borehole radius (in meters).
 
@@ -129,6 +134,7 @@ def rectangle_field(N_1, N_2, B_1, B_2, H, D, r_b):
 
     Examples
     --------
+    >>> import pygfunction as gt
     >>> boreField = gt.boreholes.rectangle_field(N_1=3, N_2=2, B_1=5., B_2=5.,
                                                  H=100., D=2.5, r_b=0.05)
 
@@ -144,12 +150,12 @@ def rectangle_field(N_1, N_2, B_1, B_2, H, D, r_b):
 
     for j in range(N_2):
         for i in range(N_1):
-            borefield.append(Borehole(H, D, r_b, x=i*B_1, y=j*B_2))
+            borefield.append(Borehole(H, D, r_b, x=i * B_1, y=j * B_2))
 
     return borefield
 
 
-def L_shaped_field(N_1, N_2, B_1, B_2, H, D, r_b):
+def L_shaped_field(N_1: int, N_2: int, B_1: float, B_2: float, H: float, D: float, r_b: float) -> list:
     """
     Build a list of boreholes in a L-shaped bore field configuration.
 
@@ -166,7 +172,7 @@ def L_shaped_field(N_1, N_2, B_1, B_2, H, D, r_b):
     H : float
         Borehole length (in meters).
     D : float
-        Borehole burried depth (in meters).
+        Borehole buried depth (in meters).
     r_b : float
         Borehole radius (in meters).
 
@@ -177,6 +183,7 @@ def L_shaped_field(N_1, N_2, B_1, B_2, H, D, r_b):
 
     Examples
     --------
+    >>> import pygfunction as gt
     >>> boreField = gt.boreholes.L_shaped_field(N_1=3, N_2=2, B_1=5., B_2=5.,
                                                 H=100., D=2.5, r_b=0.05)
 
@@ -191,14 +198,14 @@ def L_shaped_field(N_1, N_2, B_1, B_2, H, D, r_b):
     borefield = []
 
     for i in range(N_1):
-        borefield.append(Borehole(H, D, r_b, x=i*B_1, y=0.))
+        borefield.append(Borehole(H, D, r_b, x=i * B_1, y=0.))
     for j in range(1, N_2):
-        borefield.append(Borehole(H, D, r_b, x=0., y=j*B_2))
+        borefield.append(Borehole(H, D, r_b, x=0., y=j * B_2))
 
     return borefield
 
 
-def U_shaped_field(N_1, N_2, B_1, B_2, H, D, r_b):
+def U_shaped_field(N_1: int, N_2: int, B_1: float, B_2: float, H: float, D: float, r_b: float) -> list:
     """
     Build a list of boreholes in a U-shaped bore field configuration.
 
@@ -215,7 +222,7 @@ def U_shaped_field(N_1, N_2, B_1, B_2, H, D, r_b):
     H : float
         Borehole length (in meters).
     D : float
-        Borehole burried depth (in meters).
+        Borehole buried depth (in meters).
     r_b : float
         Borehole radius (in meters).
 
@@ -226,6 +233,7 @@ def U_shaped_field(N_1, N_2, B_1, B_2, H, D, r_b):
 
     Examples
     --------
+    >>> import pygfunction as gt
     >>> boreField = gt.boreholes.U_shaped_field(N_1=3, N_2=2, B_1=5., B_2=5.,
                                                 H=100., D=2.5, r_b=0.05)
 
@@ -241,17 +249,17 @@ def U_shaped_field(N_1, N_2, B_1, B_2, H, D, r_b):
 
     if N_1 > 2 and N_2 > 1:
         for i in range(N_1):
-            borefield.append(Borehole(H, D, r_b, x=i*B_1, y=0.))
+            borefield.append(Borehole(H, D, r_b, x=i * B_1, y=0.))
         for j in range(1, N_2):
-            borefield.append(Borehole(H, D, r_b, x=0, y=j*B_2))
-            borefield.append(Borehole(H, D, r_b, x=(N_1-1)*B_1, y=j*B_2))
+            borefield.append(Borehole(H, D, r_b, x=0, y=j * B_2))
+            borefield.append(Borehole(H, D, r_b, x=(N_1 - 1) * B_1, y=j * B_2))
     else:
         borefield = rectangle_field(N_1, N_2, B_1, B_2, H, D, r_b)
 
     return borefield
 
 
-def box_shaped_field(N_1, N_2, B_1, B_2, H, D, r_b):
+def box_shaped_field(N_1: int, N_2: int, B_1: float, B_2: float, H: float, D: float, r_b: float) -> list:
     """
     Build a list of boreholes in a box-shaped bore field configuration.
 
@@ -268,7 +276,7 @@ def box_shaped_field(N_1, N_2, B_1, B_2, H, D, r_b):
     H : float
         Borehole length (in meters).
     D : float
-        Borehole burried depth (in meters).
+        Borehole buried depth (in meters).
     r_b : float
         Borehole radius (in meters).
 
@@ -279,6 +287,7 @@ def box_shaped_field(N_1, N_2, B_1, B_2, H, D, r_b):
 
     Examples
     --------
+    >>> import pygfunction as gt
     >>> boreField = gt.boreholes.box_shaped_field(N_1=4, N_2=3, B_1=5., B_2=5.,
                                                   H=100., D=2.5, r_b=0.05)
 
@@ -294,22 +303,21 @@ def box_shaped_field(N_1, N_2, B_1, B_2, H, D, r_b):
     """
     borefield = []
 
-
     if N_1 > 2 and N_2 > 2:
         for i in range(N_1):
-            borefield.append(Borehole(H, D, r_b, x=i*B_1, y=0.))
-        for j in range(1, N_2-1):
-            borefield.append(Borehole(H, D, r_b, x=0., y=j*B_2))
-            borefield.append(Borehole(H, D, r_b, x=(N_1-1)*B_1, y=j*B_2))
+            borefield.append(Borehole(H, D, r_b, x=i * B_1, y=0.))
+        for j in range(1, N_2 - 1):
+            borefield.append(Borehole(H, D, r_b, x=0., y=j * B_2))
+            borefield.append(Borehole(H, D, r_b, x=(N_1 - 1) * B_1, y=j * B_2))
         for i in range(N_1):
-            borefield.append(Borehole(H, D, r_b, x=i*B_1, y=(N_2-1)*B_2))
+            borefield.append(Borehole(H, D, r_b, x=i * B_1, y=(N_2 - 1) * B_2))
     else:
         borefield = rectangle_field(N_1, N_2, B_1, B_2, H, D, r_b)
 
     return borefield
 
 
-def circle_field(N, R, H, D, r_b):
+def circle_field(N: int, R: float, H: float, D: float, r_b: float) -> list:
     """
     Build a list of boreholes in a circular field configuration.
 
@@ -322,7 +330,7 @@ def circle_field(N, R, H, D, r_b):
     H : float
         Borehole length (in meters).
     D : float
-        Borehole burried depth (in meters).
+        Borehole buried depth (in meters).
     r_b : float
         Borehole radius (in meters).
 
@@ -333,6 +341,7 @@ def circle_field(N, R, H, D, r_b):
 
     Examples
     --------
+    >>> import pygfunction as gt
     >>> boreField = gt.boreholes.circle_field(N=8, R = 5., H=100., D=2.5,
                                               r_b=0.05)
 
@@ -351,13 +360,12 @@ def circle_field(N, R, H, D, r_b):
     borefield = []
 
     for i in range(N):
-        borefield.append(Borehole(H, D, r_b, x=R*np.cos(2*pi*i/N),
-                                  y=R*np.sin(2*pi*i/N)))
+        borefield.append(Borehole(H, D, r_b, x=R * np.cos(2 * pi * i / N), y=R * np.sin(2 * pi * i / N)))
 
     return borefield
 
 
-def field_from_file(filename):
+def field_from_file(filename: str) -> list:
     """
     Build a list of boreholes given coordinates and dimensions provided in a
     text file.
@@ -399,7 +407,7 @@ def field_from_file(filename):
     return borefield
 
 
-def visualize_field(borefield):
+def visualize_field(borefield: list):
     """
     Plot the top view and 3D view of borehole positions.
 
@@ -416,25 +424,24 @@ def visualize_field(borefield):
     """
     import matplotlib.pyplot as plt
     from matplotlib.ticker import AutoMinorLocator
-    from mpl_toolkits.mplot3d import Axes3D
     # -------------------------------------------------------------------------
     # Initialize figure
     # -------------------------------------------------------------------------
-    LW = 1.5    # Line width
+    LW = 1.5  # Line width
     bbox_props = dict(boxstyle="circle,pad=0.3", fc="white", ec="b", lw=LW)
 
-    plt.rc('figure', figsize=(160.0/25.4, 80.0*4.0/4.0/25.4))
+    plt.rc('figure', figsize=(160.0 / 25.4, 80.0 * 4.0 / 4.0 / 25.4))
     fig = plt.figure()
 
     # -------------------------------------------------------------------------
     # Top view
     # -------------------------------------------------------------------------
-    i = 0   # Initialize borehole index
+    i = 0  # Initialize borehole index
     ax0 = fig.add_subplot(121)
 
     for borehole in borefield:
         i += 1  # Increment borehole index
-        (x, y) = borehole.position()    # Extract borehole position
+        (x, y) = borehole.position()  # Extract borehole position
         # Add current borehole to the figure
         ax0.plot(x, y, 'k.')
         ax0.text(x, y, i, ha="center", va="center", size=9, bbox=bbox_props)
@@ -450,7 +457,7 @@ def visualize_field(borefield):
     # -------------------------------------------------------------------------
     # 3D view
     # -------------------------------------------------------------------------
-    i = 0   # Initialize borehole index
+    i = 0  # Initialize borehole index
     ax1 = fig.add_subplot(122, projection='3d')
 
     for borehole in borefield:
@@ -458,9 +465,9 @@ def visualize_field(borefield):
         # Position of head of borehole
         (x, y) = borehole.position()
         # Position of bottom of borehole
-        x_H = x + borehole.H*np.sin(borehole.tilt)*np.cos(borehole.orientation)
-        y_H = y + borehole.H*np.sin(borehole.tilt)*np.sin(borehole.orientation)
-        z_H = borehole.D + borehole.H*np.cos(borehole.tilt)
+        x_H = x + borehole.H * np.sin(borehole.tilt) * np.cos(borehole.orientation)
+        y_H = y + borehole.H * np.sin(borehole.tilt) * np.sin(borehole.orientation)
+        z_H = borehole.D + borehole.H * np.cos(borehole.tilt)
         # Add current borehole to the figure
         ax1.plot(np.atleast_1d(x), np.atleast_1d(y), np.atleast_1d(borehole.D),
                  'ko')
@@ -483,7 +490,7 @@ def visualize_field(borefield):
     return fig
 
 
-def _path_to_inlet(bore_connectivity, bore_index):
+def _path_to_inlet(bore_connectivity: list, bore_index: int) -> list:
     """
     Returns the path from a borehole to the bore field inlet.
 
@@ -519,7 +526,7 @@ def _path_to_inlet(bore_connectivity, bore_index):
     return path
 
 
-def _verify_bore_connectivity(bore_connectivity, nBoreholes):
+def _verify_bore_connectivity(bore_connectivity: list, nBoreholes: int) -> None:
     """
     Verifies that borehole connectivity is valid.
 
@@ -537,20 +544,19 @@ def _verify_bore_connectivity(bore_connectivity, nBoreholes):
     """
     if not len(bore_connectivity) == nBoreholes:
         raise ValueError(
-            'The length of the borehole connectivity list does not correspond '
-            'to the number of boreholes in the bore field.')
+                'The length of the borehole connectivity list does not correspond '
+                'to the number of boreholes in the bore field.')
     # Cycle through each borehole and verify that connections lead to -1
     # (-1 is the bore field inlet)
     for i in range(nBoreholes):
-        n = 0 # Initialize step counter
+        n = 0  # Initialize step counter
         # Index of borehole feeding into borehole i
         index_in = bore_connectivity[i]
         # Stop when bore field inlet is reached (index_in == -1)
         while not index_in == -1:
             index_in = bore_connectivity[index_in]
-            n += 1 # Increment step counter
+            n += 1  # Increment step counter
             # Raise error if n exceeds the number of boreholes
             if n > nBoreholes:
                 raise ValueError(
-                    'The borehole connectivity list is invalid.')
-    return
+                        'The borehole connectivity list is invalid.')

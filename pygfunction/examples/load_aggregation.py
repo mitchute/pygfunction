@@ -7,11 +7,11 @@
     are simulated using the aggregation method of Claesson and Javed (2012).
 
 """
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import AutoMinorLocator
 import numpy as np
+from matplotlib.ticker import AutoMinorLocator
 from scipy.constants import pi
 from scipy.interpolate import interp1d
 from scipy.signal import fftconvolve
@@ -25,22 +25,22 @@ def main():
     # -------------------------------------------------------------------------
 
     # Borehole dimensions
-    D = 4.0             # Borehole buried depth (m)
-    H = 150.0           # Borehole length (m)
-    r_b = 0.075         # Borehole radius (m)
+    D = 4.0  # Borehole buried depth (m)
+    H = 150.0  # Borehole length (m)
+    r_b = 0.075  # Borehole radius (m)
 
     # Ground properties
-    alpha = 1.0e-6      # Ground thermal diffusivity (m2/s)
-    k_s = 2.0           # Ground thermal conductivity (W/m.K)
-    T_g = 10.0          # Undisturbed ground temperature (degC)
+    alpha = 1.0e-6  # Ground thermal diffusivity (m2/s)
+    k_s = 2.0  # Ground thermal conductivity (W/m.K)
+    T_g = 10.0  # Undisturbed ground temperature (degC)
 
     # Number of segments per borehole
     nSegments = 12
 
     # Simulation parameters
-    dt = 3600.                  # Time step (s)
-    tmax = 20.*8760. * 3600.    # Maximum time (s)
-    Nt = int(np.ceil(tmax/dt))  # Number of time steps
+    dt = 3600.  # Time step (s)
+    tmax = 20. * 8760. * 3600.  # Maximum time (s)
+    Nt = int(np.ceil(tmax / dt))  # Number of time steps
 
     # Load aggregation scheme
     LoadAgg = gt.load_aggregation.ClaessonJaved(dt, tmax)
@@ -57,7 +57,7 @@ def main():
     gFunc = gt.gfunction.uniform_temperature(boreField, time_req, alpha,
                                              nSegments=nSegments)
     # Initialize load aggregation scheme
-    LoadAgg.initialize(gFunc/(2*pi*k_s))
+    LoadAgg.initialize(gFunc / (2 * pi * k_s))
 
     # -------------------------------------------------------------------------
     # Simulation
@@ -74,10 +74,10 @@ def main():
         LoadAgg.next_time_step(time)
 
         # Evaluate heat extraction rate
-        Q[i] = synthetic_load(time/3600.)
+        Q[i] = synthetic_load(time / 3600.)
 
         # Apply current load
-        LoadAgg.set_current_load(Q[i]/H)
+        LoadAgg.set_current_load(Q[i] / H)
 
         # Evaluate borehole wall temeprature
         deltaT_b = LoadAgg.temporal_superposition()
@@ -91,13 +91,13 @@ def main():
     dQ = np.zeros(Nt)
     dQ[0] = Q[0]
     # Interpolated g-function
-    time = np.array([(j+1)*dt for j in range(Nt)])
+    time = np.array([(j + 1) * dt for j in range(Nt)])
     g = interp1d(time_req, gFunc)(time)
     for i in range(1, Nt):
-        dQ[i] = Q[i] - Q[i-1]
+        dQ[i] = Q[i] - Q[i - 1]
 
     # Convolution in Fourier domain
-    T_b_exact = T_g - fftconvolve(dQ, g/(2.0*pi*k_s*H), mode='full')[0:Nt]
+    T_b_exact = T_g - fftconvolve(dQ, g / (2.0 * pi * k_s * H), mode='full')[0:Nt]
 
     # -------------------------------------------------------------------------
     # plot results
@@ -110,7 +110,7 @@ def main():
     # Axis labels
     ax1.set_xlabel(r'$t$ (hours)')
     ax1.set_ylabel(r'$Q$ (W)')
-    hours = np.array([(j+1)*dt/3600. for j in range(Nt)])
+    hours = np.array([(j + 1) * dt / 3600. for j in range(Nt)])
     ax1.plot(hours, Q, 'b-', lw=1.5)
 
     ax2 = fig.add_subplot(312)
@@ -152,15 +152,15 @@ def synthetic_load(x):
     F = 0.0
     G = 0.95
 
-    func = (168.0-C)/168.0
-    for i in [1,2,3]:
-        func += 1.0/(i*pi)*(np.cos(C*pi*i/84.0)-1.0) \
-                          *(np.sin(pi*i/84.0*(x-B)))
-    func = func*A*np.sin(pi/12.0*(x-B)) \
-           *np.sin(pi/4380.0*(x-B))
+    func = (168.0 - C) / 168.0
+    for i in [1, 2, 3]:
+        func += 1.0 / (i * pi) * (np.cos(C * pi * i / 84.0) - 1.0) \
+                * (np.sin(pi * i / 84.0 * (x - B)))
+    func = func * A * np.sin(pi / 12.0 * (x - B)) \
+           * np.sin(pi / 4380.0 * (x - B))
 
-    y = func + (-1.0)**np.floor(D/8760.0*(x-B))*abs(func) \
-      + E*(-1.0)**np.floor(D/8760.0*(x-B))/np.sign(np.cos(D*pi/4380.0*(x-F))+G)
+    y = func + (-1.0) ** np.floor(D / 8760.0 * (x - B)) * abs(func) \
+        + E * (-1.0) ** np.floor(D / 8760.0 * (x - B)) / np.sign(np.cos(D * pi / 4380.0 * (x - F)) + G)
     return -np.array([y])
 
 

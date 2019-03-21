@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Test suite for boreholes module.
 """
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
 import unittest
 
@@ -18,7 +18,7 @@ class TestBorehole(unittest.TestCase):
         self.H = 150.
         self.D = 2.5
         self.r_b = 0.075
-        self.tilt = pi/6.
+        self.tilt = pi / 6.
         self.orientation = pi
         self.x = 2.
         self.y = 4.
@@ -62,17 +62,17 @@ class TestBorehole(unittest.TestCase):
         """
         dis = self.bore.distance(self.bore)
         self.assertAlmostEqual(dis, self.r_b, delta=abs_tol,
-                         msg=('borehole.distance() should return the borehole '
-                              'radius when the distance is less than r_b.'))
+                               msg=('borehole.distance() should return the borehole '
+                                    'radius when the distance is less than r_b.'))
 
     def test_distance_with_another(self, abs_tol=1.0e-6):
         """ Tests distance(borehole2) class method returns separating distance.
         """
         dis = self.bore.distance(self.bore2)
-        correct_dis = np.sqrt((self.x2 - self.x)**2 + (self.y2 - self.y)**2)
+        correct_dis = np.sqrt((self.x2 - self.x) ** 2 + (self.y2 - self.y) ** 2)
         self.assertAlmostEqual(dis, correct_dis, delta=abs_tol,
-                         msg=('borehole.distance() does not evaluate correct '
-                              'separating distance with target borehole.'))
+                               msg=('borehole.distance() does not evaluate correct '
+                                    'separating distance with target borehole.'))
 
 
 class TestBoreFields_RectangleField(unittest.TestCase):
@@ -130,7 +130,7 @@ class TestBoreFields_RectangleField(unittest.TestCase):
         N_2 = 5
         boreField = boreholes.rectangle_field(N_1, N_2, self.B_1, self.B_2,
                                               self.H, self.D, self.r_b)
-        self.assertEqual(len(boreField), N_1*N_2,
+        self.assertEqual(len(boreField), N_1 * N_2,
                          msg=('Incorrect number of boreholes in '
                               'rectangle_field.'))
 
@@ -191,7 +191,7 @@ class TestBoreFields_LShapedField(unittest.TestCase):
         N_2 = 5
         boreField = boreholes.L_shaped_field(N_1, N_2, self.B_1, self.B_2,
                                              self.H, self.D, self.r_b)
-        self.assertEqual(len(boreField), N_1+N_2-1,
+        self.assertEqual(len(boreField), N_1 + N_2 - 1,
                          msg=('Incorrect number of boreholes in '
                               'L_shaped_field.'))
 
@@ -252,7 +252,7 @@ class TestBoreFields_UShapedField(unittest.TestCase):
         N_2 = 5
         boreField = boreholes.U_shaped_field(N_1, N_2, self.B_1, self.B_2,
                                              self.H, self.D, self.r_b)
-        self.assertEqual(len(boreField), N_1+2*N_2-2,
+        self.assertEqual(len(boreField), N_1 + 2 * N_2 - 2,
                          msg=('Incorrect number of boreholes in '
                               'U_shaped_field.'))
 
@@ -287,7 +287,7 @@ class TestBoreFields_BoxShapedField(unittest.TestCase):
         N_1 = 5
         N_2 = 1
         boreField = boreholes.box_shaped_field(N_1, N_2, self.B_1, self.B_2,
-                                             self.H, self.D, self.r_b)
+                                               self.H, self.D, self.r_b)
         self.assertEqual(len(boreField), N_1,
                          msg=('Incorrect number of boreholes in '
                               'box_shaped_field with N2=1.'))
@@ -312,8 +312,8 @@ class TestBoreFields_BoxShapedField(unittest.TestCase):
         N_1 = 3
         N_2 = 5
         boreField = boreholes.box_shaped_field(N_1, N_2, self.B_1, self.B_2,
-                                             self.H, self.D, self.r_b)
-        self.assertEqual(len(boreField), 2*N_1+2*N_2-4,
+                                               self.H, self.D, self.r_b)
+        self.assertEqual(len(boreField), 2 * N_1 + 2 * N_2 - 4,
                          msg=('Incorrect number of boreholes in '
                               'box_shaped_field.'))
 
@@ -351,5 +351,6 @@ class TestBoreFields_CircleField(unittest.TestCase):
 
 if __name__ == '__main__' and __package__ is None:
     from os import sys, path
+
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
     unittest.main()

@@ -6,12 +6,12 @@
     equal for all boreholes.
 
 """
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
-import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
-from matplotlib.ticker import AutoMinorLocator
+import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import AutoMinorLocator
 
 import pygfunction as gt
 
@@ -22,22 +22,22 @@ def main():
     # -------------------------------------------------------------------------
 
     # Borehole dimensions
-    D = 4.0             # Borehole buried depth (m)
-    H = 150.0           # Borehole length (m)
-    r_b = 0.075         # Borehole radius (m)
-    B = 7.5             # Borehole spacing (m)
+    D = 4.0  # Borehole buried depth (m)
+    H = 150.0  # Borehole length (m)
+    r_b = 0.075  # Borehole radius (m)
+    B = 7.5  # Borehole spacing (m)
 
     # Thermal properties
-    alpha = 1.0e-6      # Ground thermal diffusivity (m2/s)
+    alpha = 1.0e-6  # Ground thermal diffusivity (m2/s)
 
     # Path to validation data
     filePath = './data/CiBe14_uniform_heat_extraction_rate.txt'
 
     # Geometrically expanding time vector.
-    dt = 100*3600.                  # Time step
-    tmax = 3000. * 8760. * 3600.    # Maximum time
-    Nt = 50                         # Number of time steps
-    ts = H**2/(9.*alpha)            # Bore field characteristic time
+    dt = 100 * 3600.  # Time step
+    tmax = 3000. * 8760. * 3600.  # Maximum time
+    Nt = 50  # Number of time steps
+    ts = H ** 2 / (9. * alpha)  # Bore field characteristic time
     time = gt.utilities.time_geometric(dt, tmax, Nt)
 
     # -------------------------------------------------------------------------
@@ -86,7 +86,7 @@ def main():
         gfunc = gt.gfunction.uniform_heat_extraction(field, time, alpha,
                                                      disp=True)
         # Draw g-function
-        ax1.plot(np.log(time/ts), gfunc, 'k-', lw=1.5)
+        ax1.plot(np.log(time / ts), gfunc, 'k-', lw=1.5)
     calculated = mlines.Line2D([], [],
                                color='black',
                                lw=1.5,
@@ -97,7 +97,7 @@ def main():
     # -------------------------------------------------------------------------
     data = np.loadtxt(filePath, skiprows=55)
     for i in range(3):
-        ax1.plot(data[:,0], data[:,i+1], 'bx', lw=1.5)
+        ax1.plot(data[:, 0], data[:, i + 1], 'bx', lw=1.5)
     reference = mlines.Line2D([], [],
                               color='blue',
                               ls='None',

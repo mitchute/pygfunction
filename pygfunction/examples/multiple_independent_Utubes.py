@@ -9,12 +9,12 @@
     Cimmino (2016).
 
 """
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
-import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
-from matplotlib.ticker import AutoMinorLocator
+import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import AutoMinorLocator
 from scipy import pi
 
 import pygfunction as gt
@@ -26,29 +26,29 @@ def main():
     # -------------------------------------------------------------------------
 
     # Borehole dimensions
-    D = 2.5             # Borehole buried depth (m)
-    H = 100.0           # Borehole length (m)
-    r_b = 0.075         # Borehole radius (m)
+    D = 2.5  # Borehole buried depth (m)
+    H = 100.0  # Borehole length (m)
+    r_b = 0.075  # Borehole radius (m)
 
     # Pipe dimensions
-    rp_out = 0.010      # Pipe outer radius (m)
-    rp_in = 0.008       # Pipe inner radius (m)
-    D_s = 0.060         # Shank spacing (m)
+    rp_out = 0.010  # Pipe outer radius (m)
+    rp_in = 0.008  # Pipe inner radius (m)
+    D_s = 0.060  # Shank spacing (m)
 
     # Pipe positions
-    nPipes = 4          # Number of U-tube pipes (-)
+    nPipes = 4  # Number of U-tube pipes (-)
     pos_pipes = _pipePositions(D_s, nPipes)
 
     # Ground properties
-    k_s = 2.0           # Ground thermal conductivity (W/m.K)
+    k_s = 2.0  # Ground thermal conductivity (W/m.K)
 
     # Grout properties
-    k_g = 1.0           # Grout thermal conductivity (W/m.K)
+    k_g = 1.0  # Grout thermal conductivity (W/m.K)
 
     # Fluid properties
-    R_fp = 0.0          # Fluid to outer pipe wall thermal resistance (m.K/W)
+    R_fp = 0.0  # Fluid to outer pipe wall thermal resistance (m.K/W)
     # Fluid specific isobaric heat capacity per U-tube (J/kg.K)
-    cp = 4000.*np.ones(nPipes)
+    cp = 4000. * np.ones(nPipes)
 
     # Borehole wall temperature (degC)
     T_b = 2.0
@@ -121,7 +121,7 @@ def main():
     # Load data from Cimmino (2016)
     # -------------------------------------------------------------------------
     data = np.loadtxt(filePath, skiprows=1)
-    ax1.plot(data[:,2:], data[:,0], 'b-', lw=1.5)
+    ax1.plot(data[:, 2:], data[:, 0], 'b-', lw=1.5)
     reference = mlines.Line2D([], [],
                               color='blue',
                               ls='-',
@@ -138,10 +138,10 @@ def _pipePositions(Ds, nPipes):
     """ Positions pipes in an axisymetric configuration.
     """
     dt = pi / float(nPipes)
-    pos = [(0., 0.) for i in range(2*nPipes)]
+    pos = [(0., 0.) for i in range(2 * nPipes)]
     for i in range(nPipes):
-        pos[i] = (Ds*np.cos(2.0*i*dt+pi), Ds*np.sin(2.0*i*dt+pi))
-        pos[i+nPipes] = (Ds*np.cos(2.0*i*dt+pi+dt), Ds*np.sin(2.0*i*dt+pi+dt))
+        pos[i] = (Ds * np.cos(2.0 * i * dt + pi), Ds * np.sin(2.0 * i * dt + pi))
+        pos[i + nPipes] = (Ds * np.cos(2.0 * i * dt + pi + dt), Ds * np.sin(2.0 * i * dt + pi + dt))
     return pos
 
 

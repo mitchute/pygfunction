@@ -10,11 +10,11 @@
     against the results of Claesson and Hellstrom (2011).
 
 """
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import AutoMinorLocator
 import numpy as np
+from matplotlib.ticker import AutoMinorLocator
 from scipy import pi
 
 import pygfunction as gt
@@ -26,26 +26,26 @@ def main():
     # -------------------------------------------------------------------------
 
     # Borehole dimensions
-    r_b = 0.070         # Borehole radius (m)
+    r_b = 0.070  # Borehole radius (m)
 
     # Pipe dimensions
-    n_p = 2             # Number of pipes
+    n_p = 2  # Number of pipes
     # Pipe outer radius (m)
-    rp_out = 0.02*np.ones(n_p)
+    rp_out = 0.02 * np.ones(n_p)
 
     # Pipe positions
     # Single U-tube [(x_1, y_1), (x_2, y_2)]
     pos_pipes = [(0.03, 0.00), (-0.03, 0.02)]
 
     # Ground properties
-    k_s = 2.5           # Ground thermal conductivity (W/m.K)
+    k_s = 2.5  # Ground thermal conductivity (W/m.K)
 
     # Grout properties
-    k_g = 1.5           # Grout thermal conductivity (W/m.K)
+    k_g = 1.5  # Grout thermal conductivity (W/m.K)
 
     # Fluid properties
     # Fluid to outer pipe wall thermal resistance (m.K/W)
-    R_fp = 1.2/(2*pi*k_g)*np.ones(n_p)
+    R_fp = 1.2 / (2 * pi * k_g) * np.ones(n_p)
 
     # Borehole wall temperature (degC)
     T_b = 0.0
@@ -57,7 +57,7 @@ def main():
     filePath = './data/ClaHel11_multipole_temperature.txt'
 
     # Thermal resistances for J=3
-    R_Claesson = 0.01*np.array([25.592, 1.561, 25.311])
+    R_Claesson = 0.01 * np.array([25.592, 1.561, 25.311])
 
     # Number of multipoles per pipe
     J = 3
@@ -69,15 +69,15 @@ def main():
     # Thermal resistances
     (R, Rd) = gt.pipes.thermal_resistances(pos_pipes, rp_out, r_b, k_s, k_g,
                                            R_fp, J=3)
-    print(50*'-')
+    print(50 * '-')
     print('Thermal resistance:\t100*R11\t100*R12\t100*R22')
-    print('Claesson and Hellstrom:\t{}\t{}\t{}'.format(100*R_Claesson[0],
-                                                       100*R_Claesson[1],
-                                                       100*R_Claesson[2]))
-    print('Present:\t\t{:.3f}\t{:.3f}\t{:.3f}'.format(100*R[0,0],
-                                                      100*R[0,1],
-                                                      100*R[1,1]))
-    print(50*'-')
+    print('Claesson and Hellstrom:\t{}\t{}\t{}'.format(100 * R_Claesson[0],
+                                                       100 * R_Claesson[1],
+                                                       100 * R_Claesson[2]))
+    print('Present:\t\t{:.3f}\t{:.3f}\t{:.3f}'.format(100 * R[0, 0],
+                                                      100 * R[0, 1],
+                                                      100 * R[1, 1]))
+    print(50 * '-')
 
     # Heat flows
     Q = np.linalg.solve(R, T_f - T_b)
@@ -99,11 +99,11 @@ def main():
     data = np.loadtxt(filePath, skiprows=1)
 
     # Plot temperatures
-    plt.rc('figure', figsize=(80.0/25.4, 80.0/25.4))
+    plt.rc('figure', figsize=(80.0 / 25.4, 80.0 / 25.4))
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     ax1.plot(x, T, 'b-', lw=1.5, label='pygfunction')
-    ax1.plot(data[:,0], data[:,1], 'ko', lw=1.5,
+    ax1.plot(data[:, 0], data[:, 1], 'ko', lw=1.5,
              label='Claesson and Hellstrom (2011)')
     ax1.legend(loc='upper left')
     # Axis labels
@@ -137,7 +137,7 @@ def main():
                                                y_T=Y.flatten())
 
     # Plot temperatures
-    plt.rc('figure', figsize=(80.0/25.4, 80.0/25.4))
+    plt.rc('figure', figsize=(80.0 / 25.4, 80.0 / 25.4))
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
     # Borehole wall outline

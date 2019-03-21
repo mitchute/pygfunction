@@ -2,7 +2,7 @@
 """ Example of definition of a bore field using pre-defined configurations.
 
 """
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
 import pygfunction as gt
 
@@ -13,16 +13,16 @@ def main():
     # -------------------------------------------------------------------------
 
     # Borehole dimensions
-    D = 4.0             # Borehole buried depth (m)
-    H = 150.0           # Borehole length (m)
-    r_b = 0.075         # Borehole radius (m)
-    B = 7.5             # Borehole spacing (m)
-    N_1 = 4             # Number of boreholes in the x-direction (columns)
-    N_2 = 3             # Number of boreholes in the y-direction (rows)
+    D = 4.0  # Borehole buried depth (m)
+    H = 150.0  # Borehole length (m)
+    r_b = 0.075  # Borehole radius (m)
+    B = 7.5  # Borehole spacing (m)
+    N_1 = 4  # Number of boreholes in the x-direction (columns)
+    N_2 = 3  # Number of boreholes in the y-direction (rows)
 
     # Circular field
-    N_b = 8     # Number of boreholes
-    R = 5.0     # Distance of the boreholes from the center of the field (m)
+    N_b = 8  # Number of boreholes
+    R = 5.0  # Distance of the boreholes from the center of the field (m)
 
     # -------------------------------------------------------------------------
     # Borehole fields
@@ -46,10 +46,9 @@ def main():
     # -------------------------------------------------------------------------
     # Draw bore fields
     # -------------------------------------------------------------------------
-    LW = 1.5    # Line width
+    LW = 1.5  # Line width
 
     for field in [rectangularField, boxField, UField, LField, circleField]:
-
         gt.boreholes.visualize_field(field)
 
     return
