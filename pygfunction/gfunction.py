@@ -253,8 +253,7 @@ def uniform_temperature(boreholes: list, time: Union[float, np.ndarray], alpha: 
     toc2 = tim.time()
     if disp:
         print('{} sec'.format(toc2 - toc1))
-        print('Total time for g-function evaluation: {} sec'.format(
-                toc2 - tic))
+        print('Total time for g-function evaluation: {} sec'.format(toc2 - tic))
         print(60 * '-')
 
     # Return float if time is a scalar
