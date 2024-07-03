@@ -6,10 +6,10 @@
     equal for all boreholes.
 
 """
-import matplotlib.lines as mlines
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.ticker import AutoMinorLocator
 
 import pygfunction as gt
 
@@ -29,7 +29,7 @@ def main():
     alpha = 1.0e-6      # Ground thermal diffusivity (m2/s)
 
     # Path to validation data
-    filePath = './data/CiBe14_uniform_heat_extraction_rate.txt'
+    filePath = Path(__file__).parent / "data" / "CiBe14_uniform_heat_extraction_rate.txt"
 
     # g-Function calculation options
     # The second field is evaluated with more segments to draw the

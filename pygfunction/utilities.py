@@ -406,7 +406,6 @@ def _format_axes_3d(ax):
         Axis object (matplotlib).
 
     """
-    from matplotlib.ticker import AutoMinorLocator
     # Draw major and minor tick marks inwards
     ax.tick_params(
         axis='both', which='major', direction='in',

@@ -10,8 +10,7 @@
 """
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.ticker import AutoMinorLocator
-from scipy import pi
+from scipy.constants import pi
 
 import pygfunction as gt
 

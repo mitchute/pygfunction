@@ -1345,7 +1345,6 @@ def visualize_field(
         Figure object (matplotlib).
 
     """
-    from mpl_toolkits.mplot3d import Axes3D
 
     # Configure figure and axes
     fig = _initialize_figure()

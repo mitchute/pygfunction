@@ -10,10 +10,11 @@
     against the results of Claesson and Hellstrom (2011).
 
 """
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.ticker import AutoMinorLocator
-from scipy import pi
+from scipy.constants import pi
 
 import pygfunction as gt
 
@@ -52,7 +53,7 @@ def main():
     T_f = np.array([1., 1.])
 
     # Path to validation data
-    filePath = './data/ClaHel11_multipole_temperature.txt'
+    filePath = Path(__file__).parent / "data" / "ClaHel11_multipole_temperature.txt"
 
     # Thermal resistances for J=3
     R_Claesson = 0.01*np.array([25.592, 1.561, 25.311])

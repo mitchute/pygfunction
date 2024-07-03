@@ -7,6 +7,8 @@
     boreholes, equal for all boreholes.
 
 """
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 from time import perf_counter
@@ -29,7 +31,7 @@ def main():
     alpha = 1.0e-6      # Ground thermal diffusivity (m2/s)
 
     # Path to validation data
-    filePath = './data/CiBe14_uniform_temperature.txt'
+    filePath = Path(__file__).parent / "data" / "CiBe14_uniform_temperature.txt"
 
     # g-Function calculation options
     # A uniform discretization is used to compare results with Cimmino and

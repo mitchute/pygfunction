@@ -9,11 +9,12 @@
     Cimmino (2016).
 
 """
+from pathlib import Path
+
 import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.ticker import AutoMinorLocator
-from scipy import pi
+from scipy.constants import pi
 
 import pygfunction as gt
 
@@ -56,7 +57,7 @@ def main():
     T_f_in = np.array([6.0, -6.0, 5.0, -5.0])
 
     # Path to validation data
-    filePath = './data/Cimmi16_multiple_independent_Utubes.txt'
+    filePath = Path(__file__).parent / "data" / "Cimmi16_multiple_independent_Utubes.txt"
 
     # -------------------------------------------------------------------------
     # Initialize pipe model
