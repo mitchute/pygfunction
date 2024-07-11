@@ -14,7 +14,11 @@
 """
 from time import perf_counter
 
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except ModuleNotFoundError:
+    pass
+
 import numpy as np
 from scipy.constants import pi
 from scipy.interpolate import interp1d
@@ -23,7 +27,7 @@ from scipy.signal import fftconvolve
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -118,40 +122,42 @@ def main():
     # Convolution in Fourier domain
     T_b_exact = T_g - fftconvolve(dQ, g/(2.0*pi*k_s*H), mode='full')[0:Nt]
 
-    # -------------------------------------------------------------------------
-    # plot results
-    # -------------------------------------------------------------------------
+    if make_plots:
 
-    # Configure figure and axes
-    fig = gt.utilities._initialize_figure()
+        # -------------------------------------------------------------------------
+        # plot results
+        # -------------------------------------------------------------------------
 
-    ax1 = fig.add_subplot(311)
-    # Axis labels
-    ax1.set_xlabel(r'$t$ [hours]')
-    ax1.set_ylabel(r'$Q_b$ [W]')
-    gt.utilities._format_axes(ax1)
-    hours = np.array([(j+1)*dt/3600. for j in range(Nt)])
-    ax1.plot(hours, Q_b)
+        # Configure figure and axes
+        fig = gt.utilities._initialize_figure()
 
-    ax2 = fig.add_subplot(312)
-    # Axis labels
-    ax2.set_xlabel(r'$t$ [hours]')
-    ax2.set_ylabel(r'$T_b$ [degC]')
-    gt.utilities._format_axes(ax2)
-    for T_b_n, line, label in zip(T_b, loadAgg_lines, loadAgg_labels):
-        ax2.plot(hours, T_b_n, line, label=label)
-    ax2.plot(hours, T_b_exact, 'k.', label='exact')
-    ax2.legend()
+        ax1 = fig.add_subplot(311)
+        # Axis labels
+        ax1.set_xlabel(r'$t$ [hours]')
+        ax1.set_ylabel(r'$Q_b$ [W]')
+        gt.utilities._format_axes(ax1)
+        hours = np.array([(j+1)*dt/3600. for j in range(Nt)])
+        ax1.plot(hours, Q_b)
 
-    ax3 = fig.add_subplot(313)
-    # Axis labels
-    ax3.set_xlabel(r'$t$ [hours]')
-    ax3.set_ylabel(r'Error [degC]')
-    gt.utilities._format_axes(ax3)
-    for T_b_n, line, label in zip(T_b, loadAgg_lines, loadAgg_labels):
-        ax3.plot(hours, T_b_n - T_b_exact, line, label=label)
-    # Adjust to plot window
-    plt.tight_layout()
+        ax2 = fig.add_subplot(312)
+        # Axis labels
+        ax2.set_xlabel(r'$t$ [hours]')
+        ax2.set_ylabel(r'$T_b$ [degC]')
+        gt.utilities._format_axes(ax2)
+        for T_b_n, line, label in zip(T_b, loadAgg_lines, loadAgg_labels):
+            ax2.plot(hours, T_b_n, line, label=label)
+        ax2.plot(hours, T_b_exact, 'k.', label='exact')
+        ax2.legend()
+
+        ax3 = fig.add_subplot(313)
+        # Axis labels
+        ax3.set_xlabel(r'$t$ [hours]')
+        ax3.set_ylabel(r'Error [degC]')
+        gt.utilities._format_axes(ax3)
+        for T_b_n, line, label in zip(T_b, loadAgg_lines, loadAgg_labels):
+            ax3.plot(hours, T_b_n - T_b_exact, line, label=label)
+        # Adjust to plot window
+        plt.tight_layout()
 
     # -------------------------------------------------------------------------
     # Print performance metrics

@@ -18,14 +18,18 @@
     speed while maintaining reasonable accuracy.
 
 """
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except ModuleNotFoundError:
+    pass
+
 import numpy as np
 from time import perf_counter
 
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -77,57 +81,59 @@ def main():
     t3 = perf_counter()
     t_equivalent = t3 - t2
 
-    # -------------------------------------------------------------------------
-    # Plot results
-    # -------------------------------------------------------------------------
-    # Draw g-functions
-    ax = gfunc_detailed.visualize_g_function().axes[0]
-    ax.plot(lntts, gfunc_similarities.gFunc, 'bx')
-    ax.plot(lntts, gfunc_equivalent.gFunc, 'ro')
-    ax.legend([f'detailed (t = {t_detailed:.3f} sec)',
-               f'similarities (t = {t_similarities:.3f} sec)',
-               f'equivalent (t = {t_equivalent:.3f} sec)'])
-    ax.set_title(f'Field of {N_1} by {N_2} boreholes')
-    plt.tight_layout()
+    if make_plots:
 
-    # Draw absolute error
-    # Configure figure and axes
-    fig = gt.utilities._initialize_figure()
-    ax = fig.add_subplot(111)
-    # Axis labels
-    ax.set_xlabel(r'ln$(t/t_s)$')
-    ax.set_ylabel(r'Absolute error')
-    gt.utilities._format_axes(ax)
-    # Absolute error
-    ax.plot(lntts, np.abs(gfunc_similarities.gFunc - gfunc_detailed.gFunc),
-            '-', label='similarities')
-    ax.plot(lntts, np.abs(gfunc_equivalent.gFunc - gfunc_detailed.gFunc),
-            '--', label='equivalent')
-    ax.legend()
-    ax.set_title(f"Absolute error relative to the 'detailed' solver "
-                 f"(Field of {N_1} by {N_2} boreholes)")
-    # Adjust to plot window
-    fig.tight_layout()
+        # -------------------------------------------------------------------------
+        # Plot results
+        # -------------------------------------------------------------------------
+        # Draw g-functions
+        ax = gfunc_detailed.visualize_g_function().axes[0]
+        ax.plot(lntts, gfunc_similarities.gFunc, 'bx')
+        ax.plot(lntts, gfunc_equivalent.gFunc, 'ro')
+        ax.legend([f'detailed (t = {t_detailed:.3f} sec)',
+                f'similarities (t = {t_similarities:.3f} sec)',
+                f'equivalent (t = {t_equivalent:.3f} sec)'])
+        ax.set_title(f'Field of {N_1} by {N_2} boreholes')
+        plt.tight_layout()
 
-    # Draw relative error
-    # Configure figure and axes
-    fig = gt.utilities._initialize_figure()
-    ax = fig.add_subplot(111)
-    # Axis labels
-    ax.set_xlabel(r'ln$(t/t_s)$')
-    ax.set_ylabel(r'Relative error')
-    gt.utilities._format_axes(ax)
-    # Relative error
-    gFunc_ref = gfunc_detailed.gFunc  # reference g-function
-    ax.plot(lntts, (gfunc_similarities.gFunc - gFunc_ref) / gFunc_ref,
-            '-', label='similarities')
-    ax.plot(lntts, (gfunc_equivalent.gFunc - gFunc_ref) / gFunc_ref,
-            '--', label='equivalent')
-    ax.legend()
-    ax.set_title(f"Relative error relative to the 'detailed' solver "
-                 f"(Field of {N_1} by {N_2} boreholes)")
-    # Adjust to plot window
-    fig.tight_layout()
+        # Draw absolute error
+        # Configure figure and axes
+        fig = gt.utilities._initialize_figure()
+        ax = fig.add_subplot(111)
+        # Axis labels
+        ax.set_xlabel(r'ln$(t/t_s)$')
+        ax.set_ylabel(r'Absolute error')
+        gt.utilities._format_axes(ax)
+        # Absolute error
+        ax.plot(lntts, np.abs(gfunc_similarities.gFunc - gfunc_detailed.gFunc),
+                '-', label='similarities')
+        ax.plot(lntts, np.abs(gfunc_equivalent.gFunc - gfunc_detailed.gFunc),
+                '--', label='equivalent')
+        ax.legend()
+        ax.set_title(f"Absolute error relative to the 'detailed' solver "
+                    f"(Field of {N_1} by {N_2} boreholes)")
+        # Adjust to plot window
+        fig.tight_layout()
+
+        # Draw relative error
+        # Configure figure and axes
+        fig = gt.utilities._initialize_figure()
+        ax = fig.add_subplot(111)
+        # Axis labels
+        ax.set_xlabel(r'ln$(t/t_s)$')
+        ax.set_ylabel(r'Relative error')
+        gt.utilities._format_axes(ax)
+        # Relative error
+        gFunc_ref = gfunc_detailed.gFunc  # reference g-function
+        ax.plot(lntts, (gfunc_similarities.gFunc - gFunc_ref) / gFunc_ref,
+                '-', label='similarities')
+        ax.plot(lntts, (gfunc_equivalent.gFunc - gFunc_ref) / gFunc_ref,
+                '--', label='equivalent')
+        ax.legend()
+        ax.set_title(f"Relative error relative to the 'detailed' solver "
+                    f"(Field of {N_1} by {N_2} boreholes)")
+        # Adjust to plot window
+        fig.tight_layout()
 
     # -------------------------------------------------------------------------
     # Borehole field (Second bore field)
@@ -150,52 +156,52 @@ def main():
     t3 = perf_counter()
     t_equivalent = t3 - t2
 
-    # -------------------------------------------------------------------------
-    # Plot results
-    # -------------------------------------------------------------------------
-    # Draw g-functions
-    ax = gfunc_similarities.visualize_g_function().axes[0]
-    ax.plot(lntts, gfunc_equivalent.gFunc, 'ro')
-    ax.legend([f'similarities (t = {t_similarities:.3f} sec)',
-               f'equivalent (t = {t_equivalent:.3f} sec)'])
-    ax.set_title(f'Field of {N_1} by {N_2} boreholes')
-    plt.tight_layout()
+    if make_plots:
 
-    # Draw absolute error
-    # Configure figure and axes
-    fig = gt.utilities._initialize_figure()
-    ax = fig.add_subplot(111)
-    # Axis labels
-    ax.set_xlabel(r'ln$(t/t_s)$')
-    ax.set_ylabel(r'Absolute error')
-    gt.utilities._format_axes(ax)
-    # Absolute error
-    ax.plot(lntts, np.abs(gfunc_equivalent.gFunc - gfunc_similarities.gFunc),
-            label='equivalent')
-    ax.legend()
-    ax.set_title(f"Absolute error relative to the 'similarities' solver "
-                 f"(Field of {N_1} by {N_2} boreholes)")
-    # Adjust to plot window
-    fig.tight_layout()
+        # -------------------------------------------------------------------------
+        # Plot results
+        # -------------------------------------------------------------------------
+        # Draw g-functions
+        ax = gfunc_similarities.visualize_g_function().axes[0]
+        ax.plot(lntts, gfunc_equivalent.gFunc, 'ro')
+        ax.legend([f'similarities (t = {t_similarities:.3f} sec)',
+                f'equivalent (t = {t_equivalent:.3f} sec)'])
+        ax.set_title(f'Field of {N_1} by {N_2} boreholes')
+        plt.tight_layout()
 
-    # Draw relative error
-    # Configure figure and axes
-    fig = gt.utilities._initialize_figure()
-    ax = fig.add_subplot(111)
-    # Axis labels
-    ax.set_xlabel(r'ln$(t/t_s)$')
-    ax.set_ylabel(r'Relative error')
-    gt.utilities._format_axes(ax)
-    # Relative error
-    ax.plot(lntts, (gfunc_equivalent.gFunc - gfunc_similarities.gFunc) / gfunc_similarities.gFunc,
-            label='equivalent')
-    ax.legend()
-    ax.set_title(f"Relative error relative to the 'similarities' solver "
-                 f"(Field of {N_1} by {N_2} boreholes)")
-    # Adjust to plot window
-    fig.tight_layout()
+        # Draw absolute error
+        # Configure figure and axes
+        fig = gt.utilities._initialize_figure()
+        ax = fig.add_subplot(111)
+        # Axis labels
+        ax.set_xlabel(r'ln$(t/t_s)$')
+        ax.set_ylabel(r'Absolute error')
+        gt.utilities._format_axes(ax)
+        # Absolute error
+        ax.plot(lntts, np.abs(gfunc_equivalent.gFunc - gfunc_similarities.gFunc),
+                label='equivalent')
+        ax.legend()
+        ax.set_title(f"Absolute error relative to the 'similarities' solver "
+                    f"(Field of {N_1} by {N_2} boreholes)")
+        # Adjust to plot window
+        fig.tight_layout()
 
-    return
+        # Draw relative error
+        # Configure figure and axes
+        fig = gt.utilities._initialize_figure()
+        ax = fig.add_subplot(111)
+        # Axis labels
+        ax.set_xlabel(r'ln$(t/t_s)$')
+        ax.set_ylabel(r'Relative error')
+        gt.utilities._format_axes(ax)
+        # Relative error
+        ax.plot(lntts, (gfunc_equivalent.gFunc - gfunc_similarities.gFunc) / gfunc_similarities.gFunc,
+                label='equivalent')
+        ax.legend()
+        ax.set_title(f"Relative error relative to the 'similarities' solver "
+                    f"(Field of {N_1} by {N_2} boreholes)")
+        # Adjust to plot window
+        fig.tight_layout()
 
 
 # Main function

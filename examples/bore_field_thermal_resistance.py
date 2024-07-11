@@ -6,14 +6,18 @@
     rates.
 
 """
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except ModuleNotFoundError:
+    pass
+
 import numpy as np
 from scipy.constants import pi
 
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -113,28 +117,28 @@ def main():
     # Plot bore field thermal resistances
     # -------------------------------------------------------------------------
 
-    # Configure figure and axes
-    fig = gt.utilities._initialize_figure()
+    if make_plots:
 
-    ax1 = fig.add_subplot(111)
-    # Axis labels
-    ax1.set_xlabel(r'$\dot{m}$ [kg/s]')
-    ax1.set_ylabel(r'$R^*_{field}$ [m.K/W]')
-    # Axis limits
-    ax1.set_xlim([0., 1.])
-    ax1.set_ylim([0., 1.])
+        # Configure figure and axes
+        fig = gt.utilities._initialize_figure()
 
-    gt.utilities._format_axes(ax1)
+        ax1 = fig.add_subplot(111)
+        # Axis labels
+        ax1.set_xlabel(r'$\dot{m}$ [kg/s]')
+        ax1.set_ylabel(r'$R^*_{field}$ [m.K/W]')
+        # Axis limits
+        ax1.set_xlim([0., 1.])
+        ax1.set_ylim([0., 1.])
 
-    # Bore field thermal resistances
-    ax1.plot(m_flow_network, R[0,:], '-', label='1 borehole')
-    ax1.plot(m_flow_network, R[2,:], '--', label='3 boreholes')
-    ax1.plot(m_flow_network, R[4,:], '-.', label='5 boreholes')
-    ax1.legend()
-    # Adjust to plot window
-    plt.tight_layout()
+        gt.utilities._format_axes(ax1)
 
-    return
+        # Bore field thermal resistances
+        ax1.plot(m_flow_network, R[0,:], '-', label='1 borehole')
+        ax1.plot(m_flow_network, R[2,:], '--', label='3 boreholes')
+        ax1.plot(m_flow_network, R[4,:], '-.', label='5 boreholes')
+        ax1.legend()
+        # Adjust to plot window
+        plt.tight_layout()
 
 
 # Main function
