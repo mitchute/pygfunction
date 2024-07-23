@@ -9,7 +9,7 @@ from scipy.constants import pi
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -100,9 +100,10 @@ def main():
     print(f'Single U-tube Borehole thermal resistance: '
           f'{R_b:.4f} m.K/W')
 
-    # Visualize the borehole geometry and save the figure
-    fig_single = SingleUTube.visualize_pipes()
-    fig_single.savefig('single-u-tube-borehole.png')
+    if make_plots:
+        # Visualize the borehole geometry and save the figure
+        fig_single = SingleUTube.visualize_pipes()
+        fig_single.savefig('single-u-tube-borehole.png')
 
     # -------------------------------------------------------------------------
     # Define a double U-tube borehole
@@ -152,9 +153,10 @@ def main():
     print(f'Double U-tube (parallel) Borehole thermal resistance: '
           f'{R_b_parallel:.4f} m.K/W')
 
-    # Visualize the borehole geometry and save the figure
-    fig_double = DoubleUTube_series.visualize_pipes()
-    fig_double.savefig('double-u-tube-borehole.png')
+    if make_plots:
+        # Visualize the borehole geometry and save the figure
+        fig_double = DoubleUTube_series.visualize_pipes()
+        fig_double.savefig('double-u-tube-borehole.png')
 
     # -------------------------------------------------------------------------
     # Define a coaxial borehole
@@ -197,9 +199,10 @@ def main():
         m_flow_borehole, fluid.cp)
     print(f'Coaxial tube Borehole thermal resistance: {R_b:.4f} m.K/W')
 
-    # Visualize the borehole geometry and save the figure
-    fig_coaxial = Coaxial.visualize_pipes()
-    fig_coaxial.savefig('coaxial-borehole.png')
+    if make_plots:
+        # Visualize the borehole geometry and save the figure
+        fig_coaxial = Coaxial.visualize_pipes()
+        fig_coaxial.savefig('coaxial-borehole.png')
 
 
 if __name__ == '__main__':

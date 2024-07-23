@@ -1518,4 +1518,3 @@ def _verify_bore_connectivity(bore_connectivity, nBoreholes):
             if n > nBoreholes:
                 raise ValueError(
                     'The borehole connectivity list is invalid.')
-    return

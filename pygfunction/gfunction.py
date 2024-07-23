@@ -2,7 +2,6 @@
 from time import perf_counter
 import warnings
 
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.cluster.hierarchy import cut_tree, dendrogram, linkage
 from scipy.constants import pi
@@ -293,6 +292,12 @@ class gFunction(object):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+
         # Configure figure and axes
         fig = _initialize_figure()
         ax = fig.add_subplot(111)
@@ -332,6 +337,12 @@ class gFunction(object):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+
         # If iBoreholes is None, then plot all boreholes
         if iBoreholes is None:
             iBoreholes = range(len(self.solver.boreholes))
@@ -419,6 +430,12 @@ class gFunction(object):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+
         # If iBoreholes is None, then plot all boreholes
         if iBoreholes is None:
             iBoreholes = range(len(self.solver.boreholes))
@@ -496,6 +513,12 @@ class gFunction(object):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+
         # If iBoreholes is None, then plot all boreholes
         if iBoreholes is None:
             iBoreholes = range(len(self.solver.boreholes))
@@ -581,6 +604,12 @@ class gFunction(object):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+
         # If iBoreholes is None, then plot all boreholes
         if iBoreholes is None:
             iBoreholes = range(len(self.boreholes))
@@ -4242,4 +4271,4 @@ class _Equivalent(_BaseSolver):
                 [np.allclose(self.network.p[0]._Rd, pipe._Rd)
                  for pipe in self.network.p]), \
                 "All boreholes must have the same piping configuration."
-        return
+
