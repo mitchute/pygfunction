@@ -9,14 +9,19 @@
 """
 from pathlib import Path
 
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+    enable_plotting = True
+except ModuleNotFoundError:
+    enable_plotting = False
+
 import numpy as np
 from time import perf_counter
 
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -88,42 +93,42 @@ def main():
             field, alpha, time=time, options=options, method='equivalent')
         t2 = perf_counter()
         t_equivalent = t2 - t1
-        # Draw g-function
-        ax = gfunc_similarities.visualize_g_function().axes[0]
-        ax.plot(lntts, gfunc_equivalent.gFunc)
-        # Draw reference g-function
-        ax.plot(data[:,0], data[:,i+1], 'o')
-        ax.legend([f'similarities (t = {t_similarities:.3f} sec)',
-                   f'equivalent (t = {t_equivalent:.3f} sec)',
-                   'Cimmino and Bernier (2014)'])
-        ax.set_title(f'Field of {nBoreholes} boreholes')
-        plt.tight_layout()
 
-        # For the second borefield, draw the evolution of heat extraction rates
-        if i == 1:
-            fig = gfunc_similarities.visualize_heat_extraction_rates(
-                iBoreholes=[18, 12, 14])
-            fig.suptitle(f"Field of {nBoreholes} boreholes: 'similarities' "
-                         f"solver")
-            fig.tight_layout()
+        if enable_plotting and make_plots:
+            # Draw g-function
+            ax = gfunc_similarities.visualize_g_function().axes[0]
+            ax.plot(lntts, gfunc_equivalent.gFunc)
+            # Draw reference g-function
+            ax.plot(data[:,0], data[:,i+1], 'o')
+            ax.legend([f'similarities (t = {t_similarities:.3f} sec)',
+                       f'equivalent (t = {t_equivalent:.3f} sec)',
+                       'Cimmino and Bernier (2014)'])
+            ax.set_title(f'Field of {nBoreholes} boreholes')
+            plt.tight_layout()
 
-            fig = gfunc_equivalent.visualize_heat_extraction_rates()
-            fig.suptitle(f"Field of {nBoreholes} boreholes: 'equivalent' "
-                         f"solver")
-            fig.tight_layout()
+            # For the second borefield, draw the evolution of heat extraction rates
+            if i == 1:
+                fig = gfunc_similarities.visualize_heat_extraction_rates(
+                    iBoreholes=[18, 12, 14])
+                fig.suptitle(f"Field of {nBoreholes} boreholes: 'similarities' "
+                             f"solver")
+                fig.tight_layout()
 
-            fig = gfunc_similarities.visualize_heat_extraction_rate_profiles(
-                iBoreholes=[18, 12, 14])
-            fig.suptitle(f"Field of {nBoreholes} boreholes: 'similarities' "
-                         f"solver")
-            fig.tight_layout()
+                fig = gfunc_equivalent.visualize_heat_extraction_rates()
+                fig.suptitle(f"Field of {nBoreholes} boreholes: 'equivalent' "
+                             f"solver")
+                fig.tight_layout()
 
-            fig = gfunc_equivalent.visualize_heat_extraction_rate_profiles()
-            fig.suptitle(f"Field of {nBoreholes} boreholes: 'equivalent' "
-                         f"solver")
-            fig.tight_layout()
+                fig = gfunc_similarities.visualize_heat_extraction_rate_profiles(
+                    iBoreholes=[18, 12, 14])
+                fig.suptitle(f"Field of {nBoreholes} boreholes: 'similarities' "
+                             f"solver")
+                fig.tight_layout()
 
-    return
+                fig = gfunc_equivalent.visualize_heat_extraction_rate_profiles()
+                fig.suptitle(f"Field of {nBoreholes} boreholes: 'equivalent' "
+                             f"solver")
+                fig.tight_layout()
 
 
 # Main function

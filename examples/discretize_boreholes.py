@@ -11,13 +11,18 @@
     can be calculated accurately using a small number of segments.
 """
 
+try:
+    import matplotlib.pyplot as plt
+    enable_plotting = True
+except ModuleNotFoundError:
+    enable_plotting = False
+
 import pygfunction as gt
 from numpy import pi
-import matplotlib.pyplot as plt
 import numpy as np
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -89,7 +94,10 @@ def main():
     N_1 = 6
     N_2 = 4
     boreField = gt.boreholes.rectangle_field(N_1, N_2, B, B, H, D, r_b)
-    gt.boreholes.visualize_field(boreField)
+
+    if make_plots:
+        gt.boreholes.visualize_field(boreField)
+
     nBoreholes = len(boreField)
 
     # -------------------------------------------------------------------------
@@ -150,22 +158,23 @@ def main():
     RMSE_UBWT = RMSE(gfunc_UBWT_uniform.gFunc, gfunc_UBWT_unequal.gFunc)
     print(f'RMSE (UBWT) = {RMSE_UBWT:.5f}')
 
-    # -------------------------------------------------------------------------
-    # Plot g-functions
-    # -------------------------------------------------------------------------
+    if enable_plotting and make_plots:
 
-    ax = gfunc_MIFT_uniform.visualize_g_function().axes[0]
-    ax.plot(np.log(time / ts), gfunc_UBWT_uniform.gFunc)
-    ax.plot(np.log(time / ts), gfunc_MIFT_unequal.gFunc, 'o')
-    ax.plot(np.log(time / ts), gfunc_UBWT_unequal.gFunc, 'o')
-    ax.legend(
-        ['Equal inlet temperature (uniform segments)',
-         'Uniform borehole wall temperature (uniform segments)',
-         'Equal inlet temperature (non-uniform segments)',
-         'Uniform borehole wall temperature (non-uniform segments)'])
-    plt.tight_layout()
+        # -------------------------------------------------------------------------
+        # Plot g-functions
+        # -------------------------------------------------------------------------
 
-    return
+        ax = gfunc_MIFT_uniform.visualize_g_function().axes[0]
+        ax.plot(np.log(time / ts), gfunc_UBWT_uniform.gFunc)
+        ax.plot(np.log(time / ts), gfunc_MIFT_unequal.gFunc, 'o')
+        ax.plot(np.log(time / ts), gfunc_UBWT_unequal.gFunc, 'o')
+        ax.legend(
+            ['Equal inlet temperature (uniform segments)',
+             'Uniform borehole wall temperature (uniform segments)',
+             'Equal inlet temperature (non-uniform segments)',
+             'Uniform borehole wall temperature (non-uniform segments)'])
+        plt.tight_layout()
+
 
 
 def RMSE(reference, predicted):

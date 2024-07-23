@@ -2,12 +2,16 @@
 """ Example of definition of a bore field using pre-defined configurations.
 
 """
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+    enable_plotting = True
+except ModuleNotFoundError:
+    enable_plotting = False
 
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Parameters
     # -------------------------------------------------------------------------
@@ -51,16 +55,15 @@ def main():
     # Circular field of 8 boreholes
     circleField = gt.boreholes.circle_field(N_b, R, H, D, r_b)
 
-    # -------------------------------------------------------------------------
-    # Draw bore fields
-    # -------------------------------------------------------------------------
-    for field in [
-            rectangularField, staggeredRectangularField, denseRectangularField,
-            boxField, UField, LField, circleField]:
-        gt.boreholes.visualize_field(field)
-        plt.show()
-
-    return
+    if enable_plotting and make_plots:
+        # -------------------------------------------------------------------------
+        # Draw bore fields
+        # -------------------------------------------------------------------------
+        for field in [
+                rectangularField, staggeredRectangularField, denseRectangularField,
+                boxField, UField, LField, circleField]:
+            gt.boreholes.visualize_field(field)
+            plt.show()
 
 
 # Main function

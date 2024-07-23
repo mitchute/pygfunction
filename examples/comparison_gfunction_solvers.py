@@ -20,8 +20,9 @@
 """
 try:
     import matplotlib.pyplot as plt
+    enable_plotting = True
 except ModuleNotFoundError:
-    pass
+    enable_plotting = False
 
 import numpy as np
 from time import perf_counter
@@ -81,7 +82,7 @@ def main(make_plots=True):
     t3 = perf_counter()
     t_equivalent = t3 - t2
 
-    if make_plots:
+    if enable_plotting and make_plots:
 
         # -------------------------------------------------------------------------
         # Plot results
@@ -156,7 +157,7 @@ def main(make_plots=True):
     t3 = perf_counter()
     t_equivalent = t3 - t2
 
-    if make_plots:
+    if enable_plotting and make_plots:
 
         # -------------------------------------------------------------------------
         # Plot results

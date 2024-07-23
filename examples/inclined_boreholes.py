@@ -18,7 +18,7 @@ import pygfunction as gt
 import numpy as np
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -72,8 +72,9 @@ def main():
             H, D, r_b, i * B, 0., tilt=tilt, orientation=orientation)
         boreField1.append(borehole)
 
-    # Visualize the borehole field
-    fig1 = gt.boreholes.visualize_field(boreField1)
+    if make_plots:
+        # Visualize the borehole field
+        gt.boreholes.visualize_field(boreField1)
 
     """
     Bore field #2
@@ -88,8 +89,9 @@ def main():
     # Field of 6 boreholes in a circle
     boreField2 = gt.boreholes.circle_field(N, R, H, D, r_b, tilt=tilt)
 
-    # Visualize the borehole field
-    fig2 = gt.boreholes.visualize_field(boreField2)
+    if make_plots:
+        # Visualize the borehole field
+        gt.boreholes.visualize_field(boreField2)
 
     # -------------------------------------------------------------------------
     # Evaluate g-functions for all fields
@@ -97,15 +99,20 @@ def main():
     # Bore field #1
     gfunc1 = gt.gfunction.gFunction(
         boreField1, alpha, time=time, options=options, method='similarities')
-    fig3 = gfunc1.visualize_g_function()
-    fig3.suptitle('"Optimal" field of 8 boreholes')
-    fig3.tight_layout()
+
+    if make_plots:
+        fig3 = gfunc1.visualize_g_function()
+        fig3.suptitle('"Optimal" field of 8 boreholes')
+        fig3.tight_layout()
+
     # Bore field #2
     gfunc2 = gt.gfunction.gFunction(
         boreField2, alpha, time=time, options=options, method='similarities')
-    fig4 = gfunc2.visualize_g_function()
-    fig4.suptitle(f'Field of {N} boreholes in a circle')
-    fig4.tight_layout()
+
+    if make_plots:
+        fig4 = gfunc2.visualize_g_function()
+        fig4.suptitle(f'Field of {N} boreholes in a circle')
+        fig4.tight_layout()
 
 
 # Main function

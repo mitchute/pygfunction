@@ -8,14 +8,19 @@
     temperature, rather than the average borehole wall temperature.
 
 """
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+    enable_plotting = True
+except ModuleNotFoundError:
+    enable_plotting = False
+
 import numpy as np
 from scipy.constants import pi
 
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -126,23 +131,22 @@ def main():
         network, alpha, time=time, boundary_condition='MIFT', options=options,
         method=method)
 
-    # -------------------------------------------------------------------------
-    # Plot g-functions
-    # -------------------------------------------------------------------------
+    if enable_plotting and make_plots:
+        # -------------------------------------------------------------------------
+        # Plot g-functions
+        # -------------------------------------------------------------------------
 
-    ax = gfunc_Tb.visualize_g_function().axes[0]
-    ax.plot(np.log(time/ts), gfunc_equal_Tf_mixed.gFunc, 'r-.')
-    ax.legend(['Uniform temperature', 'Mixed inlet temperature'])
-    plt.tight_layout()
+        ax = gfunc_Tb.visualize_g_function().axes[0]
+        ax.plot(np.log(time/ts), gfunc_equal_Tf_mixed.gFunc, 'r-.')
+        ax.legend(['Uniform temperature', 'Mixed inlet temperature'])
+        plt.tight_layout()
 
-    # For the mixed inlet fluid temperature condition, draw the temperatures
-    # and heat extraction rates
-    gfunc_equal_Tf_mixed.visualize_temperatures()
-    gfunc_equal_Tf_mixed.visualize_temperature_profiles()
-    gfunc_equal_Tf_mixed.visualize_heat_extraction_rates()
-    gfunc_equal_Tf_mixed.visualize_heat_extraction_rate_profiles()
-
-    return
+        # For the mixed inlet fluid temperature condition, draw the temperatures
+        # and heat extraction rates
+        gfunc_equal_Tf_mixed.visualize_temperatures()
+        gfunc_equal_Tf_mixed.visualize_temperature_profiles()
+        gfunc_equal_Tf_mixed.visualize_heat_extraction_rates()
+        gfunc_equal_Tf_mixed.visualize_heat_extraction_rate_profiles()
 
 
 # Main function

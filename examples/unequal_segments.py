@@ -5,13 +5,18 @@
     The g-functions of a field of 6x4 boreholes is calculated with unequal
     number of segments.
 """
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+    enable_plotting = True
+except ModuleNotFoundError:
+    enable_plotting = False
+
 import numpy as np
 
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -40,7 +45,9 @@ def main():
     N_1 = 6
     N_2 = 4
     boreField = gt.boreholes.rectangle_field(N_1, N_2, B, B, H, D, r_b)
-    gt.boreholes.visualize_field(boreField)
+
+    if enable_plotting and make_plots:
+        gt.boreholes.visualize_field(boreField)
 
     # -------------------------------------------------------------------------
     # Evaluate g-functions with different segment options
@@ -95,37 +102,36 @@ def main():
     g_func_predefined = gt.gfunction.gFunction(
         boreField, alpha, time=time, options=options, method=method)
 
-    # -------------------------------------------------------------------------
-    # Plot g-functions
-    # -------------------------------------------------------------------------
+    if enable_plotting and make_plots:
+        # -------------------------------------------------------------------------
+        # Plot g-functions
+        # -------------------------------------------------------------------------
 
-    ax = gfunc_equal.visualize_g_function().axes[0]
-    ax.plot(np.log(time/ts), gfunc_unequal.gFunc, 'r-.')
-    ax.plot(np.log(time/ts), g_func_predefined.gFunc, 'k-.')
-    ax.legend(['Equal number of segments',
-               'Unequal number of segments',
-               'Unequal segment lengths'])
-    plt.tight_layout()
+        ax = gfunc_equal.visualize_g_function().axes[0]
+        ax.plot(np.log(time/ts), gfunc_unequal.gFunc, 'r-.')
+        ax.plot(np.log(time/ts), g_func_predefined.gFunc, 'k-.')
+        ax.legend(['Equal number of segments',
+                   'Unequal number of segments',
+                   'Unequal segment lengths'])
+        plt.tight_layout()
 
-    # Heat extraction rate profiles
-    fig = gfunc_unequal.visualize_heat_extraction_rates(
-        iBoreholes=[18, 12, 14])
-    fig.suptitle('Heat extraction rates (unequal number of segments)')
-    fig.tight_layout()
-    fig = g_func_predefined.visualize_heat_extraction_rates(
-        iBoreholes=[18, 12, 14])
-    fig.suptitle('Heat extraction rates (unequal segment lengths)')
-    fig.tight_layout()
-    fig = gfunc_unequal.visualize_heat_extraction_rate_profiles(
-        iBoreholes=[18, 12, 14])
-    fig.suptitle('Heat extraction rate profiles (unequal number of segments)')
-    fig.tight_layout()
-    fig = g_func_predefined.visualize_heat_extraction_rate_profiles(
-        iBoreholes=[18, 12, 14])
-    fig.suptitle('Heat extraction rate profiles (unequal segment lengths)')
-    fig.tight_layout()
-
-    return
+        # Heat extraction rate profiles
+        fig = gfunc_unequal.visualize_heat_extraction_rates(
+            iBoreholes=[18, 12, 14])
+        fig.suptitle('Heat extraction rates (unequal number of segments)')
+        fig.tight_layout()
+        fig = g_func_predefined.visualize_heat_extraction_rates(
+            iBoreholes=[18, 12, 14])
+        fig.suptitle('Heat extraction rates (unequal segment lengths)')
+        fig.tight_layout()
+        fig = gfunc_unequal.visualize_heat_extraction_rate_profiles(
+            iBoreholes=[18, 12, 14])
+        fig.suptitle('Heat extraction rate profiles (unequal number of segments)')
+        fig.tight_layout()
+        fig = g_func_predefined.visualize_heat_extraction_rate_profiles(
+            iBoreholes=[18, 12, 14])
+        fig.suptitle('Heat extraction rate profiles (unequal segment lengths)')
+        fig.tight_layout()
 
 
 # Main function

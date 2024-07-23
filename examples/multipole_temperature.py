@@ -12,14 +12,19 @@
 """
 from pathlib import Path
 
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+    enable_plotting = True
+except ModuleNotFoundError:
+    enable_plotting = False
+
 import numpy as np
 from scipy.constants import pi
 
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -95,27 +100,29 @@ def main():
     # Load validation data
     data = np.loadtxt(filePath, skiprows=1)
 
-    # Configure figure and axes
-    fig = gt.utilities._initialize_figure()
+    if enable_plotting and make_plots:
 
-    ax1 = fig.add_subplot(111)
-    # Axis labels
-    ax1.set_xlabel(r'x (m)')
-    ax1.set_ylabel(r'$T(x,0)$')
-    # Axis limits
-    ax1.set_xlim([-0.1, 0.1])
-    ax1.set_ylim([-0.2, 1.2])
-    # Show grid
-    ax1.grid()
-    gt.utilities._format_axes(ax1)
+        # Configure figure and axes
+        fig = gt.utilities._initialize_figure()
 
-    ax1.plot(x, T, label='pygfunction')
-    ax1.plot(data[:,0], data[:,1], 'ko',
-             label='Claesson and Hellstrom (2011)')
-    ax1.legend(loc='upper left')
+        ax1 = fig.add_subplot(111)
+        # Axis labels
+        ax1.set_xlabel(r'x (m)')
+        ax1.set_ylabel(r'$T(x,0)$')
+        # Axis limits
+        ax1.set_xlim([-0.1, 0.1])
+        ax1.set_ylim([-0.2, 1.2])
+        # Show grid
+        ax1.grid()
+        gt.utilities._format_axes(ax1)
 
-    # Adjust to plot window
-    plt.tight_layout()
+        ax1.plot(x, T, label='pygfunction')
+        ax1.plot(data[:,0], data[:,1], 'ko',
+                 label='Claesson and Hellstrom (2011)')
+        ax1.legend(loc='upper left')
+
+        # Adjust to plot window
+        plt.tight_layout()
 
     # -------------------------------------------------------------------------
     # Temperatures in -0.1 < x < 0.1, -0.1 < y < 0.1
@@ -133,36 +140,35 @@ def main():
                                                x_T=X.flatten(),
                                                y_T=Y.flatten())
 
-    # Configure figure and axes
-    fig = gt.utilities._initialize_figure()
+    if enable_plotting and make_plots:
+        # Configure figure and axes
+        fig = gt.utilities._initialize_figure()
 
-    ax1 = fig.add_subplot(111)
-    # Axis labels
-    ax1.set_xlabel('x (m)')
-    ax1.set_ylabel('y (m)')
-    # Axis limits
-    plt.axis([-0.1, 0.1, -0.1, 0.1])
-    plt.gca().set_aspect('equal', adjustable='box')
-    gt.utilities._format_axes(ax1)
+        ax1 = fig.add_subplot(111)
+        # Axis labels
+        ax1.set_xlabel('x (m)')
+        ax1.set_ylabel('y (m)')
+        # Axis limits
+        plt.axis([-0.1, 0.1, -0.1, 0.1])
+        plt.gca().set_aspect('equal', adjustable='box')
+        gt.utilities._format_axes(ax1)
 
-    # Borehole wall outline
-    borewall = plt.Circle((0., 0.), radius=r_b,
-                          fill=False, linestyle='--', linewidth=2.)
-    ax1.add_patch(borewall)
-    # Pipe outlines
-    for pos, r_out_n in zip(pos_pipes, rp_out):
-        pipe = plt.Circle(pos, radius=r_out_n,
-                          fill=False, linestyle='-', linewidth=4.)
-        ax1.add_patch(pipe)
-    # Temperature contours
-    CS = ax1.contour(X, Y, T.reshape((N_xy, N_xy)),
-                     np.linspace(-0.2, 1.0, num=7))
-    plt.clabel(CS, inline=1, fontsize=10)
+        # Borehole wall outline
+        borewall = plt.Circle((0., 0.), radius=r_b,
+                              fill=False, linestyle='--', linewidth=2.)
+        ax1.add_patch(borewall)
+        # Pipe outlines
+        for pos, r_out_n in zip(pos_pipes, rp_out):
+            pipe = plt.Circle(pos, radius=r_out_n,
+                              fill=False, linestyle='-', linewidth=4.)
+            ax1.add_patch(pipe)
+        # Temperature contours
+        CS = ax1.contour(X, Y, T.reshape((N_xy, N_xy)),
+                         np.linspace(-0.2, 1.0, num=7))
+        plt.clabel(CS, inline=1, fontsize=10)
 
-    # Adjust to plot window
-    plt.tight_layout()
-
-    return
+        # Adjust to plot window
+        plt.tight_layout()
 
 
 # Main function

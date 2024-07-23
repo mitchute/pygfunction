@@ -7,14 +7,19 @@
     boreholes, and (c) equal inlet fluid temperature into all boreholes.
 
 """
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+    enable_plotting = True
+except ModuleNotFoundError:
+    enable_plotting = False
+
 import numpy as np
 from scipy.constants import pi
 
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -116,19 +121,18 @@ def main():
     gfunc_equal_Tf_in = gt.gfunction.gFunction(
         network, alpha, time=time, boundary_condition='MIFT', options=options)
 
-    # -------------------------------------------------------------------------
-    # Plot g-functions
-    # -------------------------------------------------------------------------
+    if enable_plotting and make_plots:
+        # -------------------------------------------------------------------------
+        # Plot g-functions
+        # -------------------------------------------------------------------------
 
-    ax = gfunc_uniform_Q.visualize_g_function().axes[0]
-    ax.plot(np.log(time/ts), gfunc_uniform_T.gFunc, 'k--')
-    ax.plot(np.log(time/ts), gfunc_equal_Tf_in.gFunc, 'r-.')
-    ax.legend(['Uniform heat extraction rate',
-               'Uniform borehole wall temperature',
-               'Equal inlet temperature'])
-    plt.tight_layout()
-
-    return
+        ax = gfunc_uniform_Q.visualize_g_function().axes[0]
+        ax.plot(np.log(time/ts), gfunc_uniform_T.gFunc, 'k--')
+        ax.plot(np.log(time/ts), gfunc_equal_Tf_in.gFunc, 'r-.')
+        ax.legend(['Uniform heat extraction rate',
+                   'Uniform borehole wall temperature',
+                   'Equal inlet temperature'])
+        plt.tight_layout()
 
 
 # Main function

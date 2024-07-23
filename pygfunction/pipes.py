@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.constants import pi
 from scipy.special import binom
@@ -741,6 +740,12 @@ class _BasePipe(object):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+
         # Configure figure and axes
         fig = _initialize_figure()
         ax = fig.add_subplot(111)
@@ -2384,6 +2389,12 @@ class Coaxial(SingleUTube):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+
         # Configure figure and axes
         fig = _initialize_figure()
         ax = fig.add_subplot(111)

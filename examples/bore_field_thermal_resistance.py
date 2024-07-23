@@ -8,8 +8,9 @@
 """
 try:
     import matplotlib.pyplot as plt
+    enable_plotting = True
 except ModuleNotFoundError:
-    pass
+    enable_plotting = False
 
 import numpy as np
 from scipy.constants import pi
@@ -117,7 +118,7 @@ def main(make_plots=True):
     # Plot bore field thermal resistances
     # -------------------------------------------------------------------------
 
-    if make_plots:
+    if enable_plotting and make_plots:
 
         # Configure figure and axes
         fig = gt.utilities._initialize_figure()

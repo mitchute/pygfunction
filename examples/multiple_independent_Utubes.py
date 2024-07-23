@@ -11,15 +11,20 @@
 """
 from pathlib import Path
 
-import matplotlib.lines as mlines
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.lines as mlines
+    import matplotlib.pyplot as plt
+    enable_plotting = True
+except ModuleNotFoundError:
+    enable_plotting = False
+
 import numpy as np
 from scipy.constants import pi
 
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -82,54 +87,55 @@ def main():
     z = np.linspace(0., H, num=nz)
     T_f = MultipleUTube.get_temperature(z, T_f_in, T_b, m_flow_borehole, cp_f)
 
-    # -------------------------------------------------------------------------
-    # Plot fluid temperature profiles
-    # -------------------------------------------------------------------------
+    if enable_plotting and make_plots:
 
-    # Configure figure and axes
-    fig = gt.utilities._initialize_figure()
+        # -------------------------------------------------------------------------
+        # Plot fluid temperature profiles
+        # -------------------------------------------------------------------------
 
-    ax1 = fig.add_subplot(111)
-    # Axis labels
-    ax1.set_xlabel(r'Temperature [degC]')
-    ax1.set_ylabel(r'Depth from borehole head [m]')
-    gt.utilities._format_axes(ax1)
+        # Configure figure and axes
+        fig = gt.utilities._initialize_figure()
 
-    # Plot temperatures
-    ax1.plot(T_f, z, 'k.')
-    ax1.plot(np.array([T_b, T_b]), np.array([0., H]), 'k--')
-    # Labels
-    calculated = mlines.Line2D([], [],
-                               color='black',
-                               ls='None',
-                               marker='.',
-                               label='Fluid')
-    borehole_temp = mlines.Line2D([], [],
-                                  color='black',
-                                  ls='--',
+        ax1 = fig.add_subplot(111)
+        # Axis labels
+        ax1.set_xlabel(r'Temperature [degC]')
+        ax1.set_ylabel(r'Depth from borehole head [m]')
+        gt.utilities._format_axes(ax1)
+
+        # Plot temperatures
+        ax1.plot(T_f, z, 'k.')
+        ax1.plot(np.array([T_b, T_b]), np.array([0., H]), 'k--')
+        # Labels
+        calculated = mlines.Line2D([], [],
+                                   color='black',
+                                   ls='None',
+                                   marker='.',
+                                   label='Fluid')
+        borehole_temp = mlines.Line2D([], [],
+                                      color='black',
+                                      ls='--',
+                                      marker='None',
+                                      label='Borehole wall')
+        plt.tight_layout()
+
+        # -------------------------------------------------------------------------
+        # Load data from Cimmino (2016)
+        # -------------------------------------------------------------------------
+        data = np.loadtxt(filePath, skiprows=1)
+        ax1.plot(data[:,2:], data[:,0], 'b-',)
+        reference = mlines.Line2D([], [],
+                                  color='blue',
+                                  ls='-',
+                                  lw=1.5,
                                   marker='None',
-                                  label='Borehole wall')
-    plt.tight_layout()
+                                  label='Cimmino (2016)')
+        ax1.legend(handles=[borehole_temp, calculated, reference],
+                   loc='upper left')
 
-    # -------------------------------------------------------------------------
-    # Load data from Cimmino (2016)
-    # -------------------------------------------------------------------------
-    data = np.loadtxt(filePath, skiprows=1)
-    ax1.plot(data[:,2:], data[:,0], 'b-',)
-    reference = mlines.Line2D([], [],
-                              color='blue',
-                              ls='-',
-                              lw=1.5,
-                              marker='None',
-                              label='Cimmino (2016)')
-    ax1.legend(handles=[borehole_temp, calculated, reference],
-               loc='upper left')
+        # Reverse y-axis
+        ax1.set_ylim(ax1.get_ylim()[::-1])
+        # Adjust to plot window
 
-    # Reverse y-axis
-    ax1.set_ylim(ax1.get_ylim()[::-1])
-    # Adjust to plot window
-
-    return
 
 
 def _pipePositions(Ds, nPipes):

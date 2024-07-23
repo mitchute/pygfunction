@@ -8,13 +8,13 @@ from pathlib import Path
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Parameters
     # -------------------------------------------------------------------------
 
     # Filepath to bore field text file
-    filename = Path(__file__).parent / "data", "custom_field_32_boreholes.txt"
+    filename = Path(__file__).parent / "data" / "custom_field_32_boreholes.txt"
 
     # -------------------------------------------------------------------------
     # Borehole field
@@ -23,13 +23,12 @@ def main():
     # Build list of boreholes
     field = gt.boreholes.field_from_file(filename)
 
-    # -------------------------------------------------------------------------
-    # Draw bore field
-    # -------------------------------------------------------------------------
+    if make_plots:
+        # -------------------------------------------------------------------------
+        # Draw bore field
+        # -------------------------------------------------------------------------
 
-    gt.boreholes.visualize_field(field)
-
-    return
+        gt.boreholes.visualize_field(field)
 
 
 # Main function
