@@ -296,7 +296,7 @@ class gFunction(object):
         try:
             import matplotlib.pyplot as plt
         except ModuleNotFoundError:
-            raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+            raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
 
         # Configure figure and axes
         fig = _initialize_figure()
@@ -341,7 +341,7 @@ class gFunction(object):
         try:
             import matplotlib.pyplot as plt
         except ModuleNotFoundError:
-            raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+            raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
 
         # If iBoreholes is None, then plot all boreholes
         if iBoreholes is None:
@@ -434,7 +434,7 @@ class gFunction(object):
         try:
             import matplotlib.pyplot as plt
         except ModuleNotFoundError:
-            raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+            raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
 
         # If iBoreholes is None, then plot all boreholes
         if iBoreholes is None:
@@ -517,7 +517,7 @@ class gFunction(object):
         try:
             import matplotlib.pyplot as plt
         except ModuleNotFoundError:
-            raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+            raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
 
         # If iBoreholes is None, then plot all boreholes
         if iBoreholes is None:
@@ -608,7 +608,7 @@ class gFunction(object):
         try:
             import matplotlib.pyplot as plt
         except ModuleNotFoundError:
-            raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+            raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
 
         # If iBoreholes is None, then plot all boreholes
         if iBoreholes is None:
@@ -4271,4 +4271,3 @@ class _Equivalent(_BaseSolver):
                 [np.allclose(self.network.p[0]._Rd, pipe._Rd)
                  for pipe in self.network.p]), \
                 "All boreholes must have the same piping configuration."
-

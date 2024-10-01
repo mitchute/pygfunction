@@ -396,7 +396,7 @@ def _initialize_figure():
     try:
         import matplotlib.pyplot as plt
     except ModuleNotFoundError:
-        raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+        raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
 
     plt.rc('font', size=9)
     plt.rc('xtick', labelsize=9)
