@@ -23,7 +23,7 @@ class Fluid:
             Mass fraction of the mixing fluid added to water (in %).
             Lower bound = 0. Upper bound is dependent on the mixture.
         T: float, optional
-            The temperature of the fluid (in Celcius).
+            The temperature of the fluid (in Celsius).
             Default is 20 degC.
 
         Examples
