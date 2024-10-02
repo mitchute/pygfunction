@@ -303,7 +303,7 @@ def time_MarcottePasquier(dt, tmax, non_expanding_cells=48):
     tmax : float
         Maximum simulation time (in seconds).
     non_expanding_cells : int, optional
-        Number of cells before geomteric expansion starts.
+        Number of cells before geometric expansion starts.
         Default is 48.
 
     Returns
@@ -396,7 +396,7 @@ def _initialize_figure():
     try:
         import matplotlib.pyplot as plt
     except ModuleNotFoundError:
-        raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+        raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
 
     plt.rc('font', size=9)
     plt.rc('xtick', labelsize=9)
@@ -511,7 +511,7 @@ def _erf_coeffs(N):
     """
     Return the coefficients of the approximation of the error function.
 
-    This returns the coefficents (a_n, b_n) of the approximation of the error
+    This returns the coefficients (a_n, b_n) of the approximation of the error
     function adapted from the work of Tanash and Riihonen (2020)
     [#erf-TanRii2020]_. The approximation of the error function is given by:
 

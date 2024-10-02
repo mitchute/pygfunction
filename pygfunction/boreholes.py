@@ -1348,7 +1348,7 @@ def visualize_field(
     try:
         import matplotlib.pyplot as plt
     except ModuleNotFoundError:
-        raise ModuleNotFoundError("matplotlib is not installed. pip install matplotlib to proceed")
+        raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
 
     # Configure figure and axes
     fig = _initialize_figure()
