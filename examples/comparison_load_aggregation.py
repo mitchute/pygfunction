@@ -14,7 +14,12 @@
 """
 from time import perf_counter
 
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+    enable_plotting = True
+except ModuleNotFoundError:
+    enable_plotting = False
+
 import numpy as np
 from scipy.constants import pi
 from scipy.interpolate import interp1d
@@ -23,7 +28,7 @@ from scipy.signal import fftconvolve
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -49,7 +54,7 @@ def main():
     time = dt * np.arange(1, Nt+1)
 
     # Evaluate heat extraction rate
-    Q_b = synthetic_load(time/3600.)
+    Q_b = gt.utilities.synthetic_load(time/3600.)
 
     # Load aggregation schemes
     ClaessonJaved = gt.load_aggregation.ClaessonJaved(dt, tmax)
@@ -98,7 +103,7 @@ def main():
             # Apply current load
             LoadAgg.set_current_load(Q_b[i]/H)
 
-            # Evaluate borehole wall temeprature
+            # Evaluate borehole wall temperature
             deltaT_b = LoadAgg.temporal_superposition()
             T_b[n,i] = T_g - deltaT_b
         toc = perf_counter()
@@ -118,40 +123,42 @@ def main():
     # Convolution in Fourier domain
     T_b_exact = T_g - fftconvolve(dQ, g/(2.0*pi*k_s*H), mode='full')[0:Nt]
 
-    # -------------------------------------------------------------------------
-    # plot results
-    # -------------------------------------------------------------------------
+    if enable_plotting and make_plots:
 
-    # Configure figure and axes
-    fig = gt.utilities._initialize_figure()
+        # -------------------------------------------------------------------------
+        # plot results
+        # -------------------------------------------------------------------------
 
-    ax1 = fig.add_subplot(311)
-    # Axis labels
-    ax1.set_xlabel(r'$t$ [hours]')
-    ax1.set_ylabel(r'$Q_b$ [W]')
-    gt.utilities._format_axes(ax1)
-    hours = np.array([(j+1)*dt/3600. for j in range(Nt)])
-    ax1.plot(hours, Q_b)
+        # Configure figure and axes
+        fig = gt.utilities._initialize_figure()
 
-    ax2 = fig.add_subplot(312)
-    # Axis labels
-    ax2.set_xlabel(r'$t$ [hours]')
-    ax2.set_ylabel(r'$T_b$ [degC]')
-    gt.utilities._format_axes(ax2)
-    for T_b_n, line, label in zip(T_b, loadAgg_lines, loadAgg_labels):
-        ax2.plot(hours, T_b_n, line, label=label)
-    ax2.plot(hours, T_b_exact, 'k.', label='exact')
-    ax2.legend()
+        ax1 = fig.add_subplot(311)
+        # Axis labels
+        ax1.set_xlabel(r'$t$ [hours]')
+        ax1.set_ylabel(r'$Q_b$ [W]')
+        gt.utilities._format_axes(ax1)
+        hours = np.array([(j+1)*dt/3600. for j in range(Nt)])
+        ax1.plot(hours, Q_b)
 
-    ax3 = fig.add_subplot(313)
-    # Axis labels
-    ax3.set_xlabel(r'$t$ [hours]')
-    ax3.set_ylabel(r'Error [degC]')
-    gt.utilities._format_axes(ax3)
-    for T_b_n, line, label in zip(T_b, loadAgg_lines, loadAgg_labels):
-        ax3.plot(hours, T_b_n - T_b_exact, line, label=label)
-    # Adjust to plot window
-    plt.tight_layout()
+        ax2 = fig.add_subplot(312)
+        # Axis labels
+        ax2.set_xlabel(r'$t$ [hours]')
+        ax2.set_ylabel(r'$T_b$ [degC]')
+        gt.utilities._format_axes(ax2)
+        for T_b_n, line, label in zip(T_b, loadAgg_lines, loadAgg_labels):
+            ax2.plot(hours, T_b_n, line, label=label)
+        ax2.plot(hours, T_b_exact, 'k.', label='exact')
+        ax2.legend()
+
+        ax3 = fig.add_subplot(313)
+        # Axis labels
+        ax3.set_xlabel(r'$t$ [hours]')
+        ax3.set_ylabel(r'Error [degC]')
+        gt.utilities._format_axes(ax3)
+        for T_b_n, line, label in zip(T_b, loadAgg_lines, loadAgg_labels):
+            ax3.plot(hours, T_b_n - T_b_exact, line, label=label)
+        # Adjust to plot window
+        plt.tight_layout()
 
     # -------------------------------------------------------------------------
     # Print performance metrics
@@ -166,35 +173,6 @@ def main():
         print((f' {label} ').center(60, '-'))
         print(f'Maximum absolute error : {maxError_n:.3f} degC')
         print(f'Calculation time : {t_calc_n:.3f} sec')
-
-    return
-
-
-def synthetic_load(x):
-    """
-    Synthetic load profile of Bernier et al. (2004).
-
-    Returns load y (in watts) at time x (in hours).
-    """
-    A = 2000.0
-    B = 2190.0
-    C = 80.0
-    D = 2.0
-    E = 0.01
-    F = 0.0
-    G = 0.95
-
-    func = (168.0-C)/168.0
-    for i in [1, 2, 3]:
-        func += 1.0/(i*pi)*(np.cos(C*pi*i/84.0) - 1.0) \
-                          *(np.sin(pi*i/84.0*(x - B)))
-    func = func*A*np.sin(pi/12.0*(x - B)) \
-        *np.sin(pi/4380.0*(x - B))
-
-    y = func + (-1.0)**np.floor(D/8760.0*(x - B))*abs(func) \
-        + E*(-1.0)**np.floor(D/8760.0*(x - B)) \
-        /np.sign(np.cos(D*pi/4380.0*(x - F)) + G)
-    return -y
 
 
 # Main function

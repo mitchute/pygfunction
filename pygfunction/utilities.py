@@ -1,9 +1,35 @@
 # -*- coding: utf-8 -*-
-import matplotlib.pyplot as plt
 import numpy as np
 import numpy.polynomial.polynomial as poly
+from scipy.constants import pi
 from scipy.special import erf
 import warnings
+
+
+def synthetic_load(x):
+    """
+    Synthetic load profile of Bernier et al. (2004).
+
+    Returns load y (in watts) at time x (in hours).
+    """
+    A = 2000.0
+    B = 2190.0
+    C = 80.0
+    D = 2.0
+    E = 0.01
+    F = 0.0
+    G = 0.95
+
+    func = (168.0-C)/168.0
+    for i in [1, 2, 3]:
+        func += 1.0/(i*pi)*(np.cos(C*pi*i/84.0)-1.0) \
+                          *(np.sin(pi*i/84.0*(x-B)))
+    func = func*A*np.sin(pi/12.0*(x-B)) \
+           *np.sin(pi/4380.0*(x-B))
+
+    y = func + (-1.0)**np.floor(D/8760.0*(x-B))*abs(func) \
+      + E*(-1.0)**np.floor(D/8760.0*(x-B))/np.sign(np.cos(D*pi/4380.0*(x-F))+G)
+    return -y
 
 
 def cardinal_point(direction):
@@ -277,7 +303,7 @@ def time_MarcottePasquier(dt, tmax, non_expanding_cells=48):
     tmax : float
         Maximum simulation time (in seconds).
     non_expanding_cells : int, optional
-        Number of cells before geomteric expansion starts.
+        Number of cells before geometric expansion starts.
         Default is 48.
 
     Returns
@@ -366,6 +392,12 @@ def _initialize_figure():
         Figure object (matplotlib).
 
     """
+
+    try:
+        import matplotlib.pyplot as plt
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
+
     plt.rc('font', size=9)
     plt.rc('xtick', labelsize=9)
     plt.rc('ytick', labelsize=9)
@@ -406,7 +438,6 @@ def _format_axes_3d(ax):
         Axis object (matplotlib).
 
     """
-    from matplotlib.ticker import AutoMinorLocator
     # Draw major and minor tick marks inwards
     ax.tick_params(
         axis='both', which='major', direction='in',
@@ -480,7 +511,7 @@ def _erf_coeffs(N):
     """
     Return the coefficients of the approximation of the error function.
 
-    This returns the coefficents (a_n, b_n) of the approximation of the error
+    This returns the coefficients (a_n, b_n) of the approximation of the error
     function adapted from the work of Tanash and Riihonen (2020)
     [#erf-TanRii2020]_. The approximation of the error function is given by:
 

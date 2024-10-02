@@ -5,7 +5,7 @@
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Parameters
     # -------------------------------------------------------------------------
@@ -45,9 +45,8 @@ def main():
     # Draw bore field
     # -------------------------------------------------------------------------
 
-    gt.boreholes.visualize_field(field)
-
-    return
+    if make_plots:
+        gt.boreholes.visualize_field(field)
 
 
 # Main function

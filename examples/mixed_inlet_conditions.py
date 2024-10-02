@@ -8,15 +8,19 @@
     temperature, rather than the average borehole wall temperature.
 
 """
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+    enable_plotting = True
+except ModuleNotFoundError:
+    enable_plotting = False
+
 import numpy as np
-from matplotlib.ticker import AutoMinorLocator
-from scipy import pi
+from scipy.constants import pi
 
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -51,7 +55,7 @@ def main():
 
     # Fluid properties
     # Total fluid mass flow rate in network (kg/s)
-    m_flow_network = np.array([-0.25, 0.5])   
+    m_flow_network = np.array([-0.25, 0.5])
     # All boreholes are in series
     m_flow_borehole = m_flow_network
     # The fluid is propylene-glycol (20 %) at 20 degC
@@ -127,27 +131,26 @@ def main():
         network, alpha, time=time, m_flow_network=m_flow_network, cp_f=cp_f,
         boundary_condition='MIFT', options=options, method=method)
 
-    # -------------------------------------------------------------------------
-    # Plot g-functions
-    # -------------------------------------------------------------------------
+    if enable_plotting and make_plots:
+        # -------------------------------------------------------------------------
+        # Plot g-functions
+        # -------------------------------------------------------------------------
 
-    ax = gfunc_Tb.visualize_g_function().axes[0]
-    ax.plot(np.log(time/ts), gfunc_equal_Tf_mixed.gFunc[0, 0, :], 'C1')
-    ax.plot(np.log(time/ts), gfunc_equal_Tf_mixed.gFunc[1, 1, :], 'C2')
-    ax.legend([
-        'Uniform temperature',
-        f'Mixed inlet temperature (m_flow={m_flow_network[0]} kg/s)',
-        f'Mixed inlet temperature (m_flow={m_flow_network[1]} kg/s)'])
-    plt.tight_layout()
+        ax = gfunc_Tb.visualize_g_function().axes[0]
+        ax.plot(np.log(time/ts), gfunc_equal_Tf_mixed.gFunc[0, 0, :], 'C1')
+        ax.plot(np.log(time/ts), gfunc_equal_Tf_mixed.gFunc[1, 1, :], 'C2')
+        ax.legend([
+            'Uniform temperature',
+            f'Mixed inlet temperature (m_flow={m_flow_network[0]} kg/s)',
+            f'Mixed inlet temperature (m_flow={m_flow_network[1]} kg/s)'])
+        plt.tight_layout()
 
-    # For the mixed inlet fluid temperature condition, draw the temperatures
-    # and heat extraction rates
-    gfunc_equal_Tf_mixed.visualize_temperatures()
-    gfunc_equal_Tf_mixed.visualize_temperature_profiles()
-    gfunc_equal_Tf_mixed.visualize_heat_extraction_rates()
-    gfunc_equal_Tf_mixed.visualize_heat_extraction_rate_profiles()
-
-    return
+        # For the mixed inlet fluid temperature condition, draw the temperatures
+        # and heat extraction rates
+        gfunc_equal_Tf_mixed.visualize_temperatures()
+        gfunc_equal_Tf_mixed.visualize_temperature_profiles()
+        gfunc_equal_Tf_mixed.visualize_heat_extraction_rates()
+        gfunc_equal_Tf_mixed.visualize_heat_extraction_rate_profiles()
 
 
 # Main function

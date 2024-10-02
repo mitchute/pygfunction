@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.constants import pi
 from scipy.special import binom
@@ -747,6 +746,12 @@ class _BasePipe(object):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
+
         # Configure figure and axes
         fig = _initialize_figure()
         ax = fig.add_subplot(111)
@@ -2645,6 +2650,12 @@ class Coaxial(SingleUTube):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
+
         # Configure figure and axes
         fig = _initialize_figure()
         ax = fig.add_subplot(111)
@@ -2770,9 +2781,9 @@ class Coaxial(SingleUTube):
         return True
 
 
-# Dictionnary of inputs and outputs for thermal_resistance function
+# Dictionary of inputs and outputs for thermal_resistance function
 # The inputs and outputs of the last call to the function are saved into this
-# dictionnary to save calculation time on repeated calls.
+# dictionary to save calculation time on repeated calls.
 _thermal_resistances_dict = {
     'pos': None, 'r_out': None, 'r_b': None, 'k_s': None, 'k_g': None,
     'R_fp': None, 'J': None, 'R': None, 'Rd': None}
@@ -2781,7 +2792,7 @@ _thermal_resistances_dict = {
 def _compare_thermal_resistances_inputs(
         pos, r_out, r_b, k_s, k_g, R_fp, J, tol=1e-6):
     """
-    Compare inputs to the content of the _thermal_resistances_dict dictionnary.
+    Compare inputs to the content of the _thermal_resistances_dict dictionary.
 
     Parameters
     ----------
@@ -2807,10 +2818,10 @@ def _compare_thermal_resistances_inputs(
     Returns
     -------
     bool
-        True if the inputs are the same as the content of the dictionnary.
+        True if the inputs are the same as the content of the dictionary.
 
     """
-    # Return False if dictionnary is empty
+    # Return False if dictionary is empty
     for arg in ('pos', 'r_out', 'r_b', 'k_s', 'k_g', 'R_fp', 'J'):
         if _thermal_resistances_dict[arg] is None:
             return False
@@ -2954,7 +2965,7 @@ def thermal_resistances(pos, r_out, r_b, k_s, k_g, R_fp, J=2):
                     sum([K[i, j] for j in range(n_p) if not i == j]))
     Rd = 1.0/K
 
-    # Save outputs into dictionnary
+    # Save outputs into dictionary
     _thermal_resistances_dict['pos'] = pos
     _thermal_resistances_dict['r_out'] = r_out
     _thermal_resistances_dict['r_b'] = r_b

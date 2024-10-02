@@ -6,15 +6,20 @@
     equal for all boreholes.
 
 """
-import matplotlib.lines as mlines
-import matplotlib.pyplot as plt
+from pathlib import Path
+
+try:
+    import matplotlib.pyplot as plt
+    enable_plotting = True
+except ModuleNotFoundError:
+    enable_plotting = False
+
 import numpy as np
-from matplotlib.ticker import AutoMinorLocator
 
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -29,7 +34,7 @@ def main():
     alpha = 1.0e-6      # Ground thermal diffusivity (m2/s)
 
     # Path to validation data
-    filePath = './data/CiBe14_uniform_heat_extraction_rate.txt'
+    filePath = Path(__file__).parent / "data" / "CiBe14_uniform_heat_extraction_rate.txt"
 
     # g-Function calculation options
     # The second field is evaluated with more segments to draw the
@@ -91,20 +96,20 @@ def main():
         gfunc = gt.gfunction.gFunction(
             field, alpha, time=time, boundary_condition='UHTR',
             options=options[i], method=method)
-        # Draw g-function
-        ax = gfunc.visualize_g_function().axes[0]
-        # Draw reference g-function
-        ax.plot(data[:,0], data[:,i+1], 'bx')
-        ax.legend(['pygfunction', 'Cimmino and Bernier (2014)'])
-        ax.set_title('Field of {} boreholes'.format(len(field)))
-        plt.tight_layout()
 
-        # For the second borefield, draw the evolution of heat extraction rates
-        if i == 1:
-            gfunc.visualize_temperatures(iBoreholes=[18, 12, 14])
-            gfunc.visualize_temperature_profiles(iBoreholes=[14])
+        if enable_plotting and make_plots:
+            # Draw g-function
+            ax = gfunc.visualize_g_function().axes[0]
+            # Draw reference g-function
+            ax.plot(data[:,0], data[:,i+1], 'bx')
+            ax.legend(['pygfunction', 'Cimmino and Bernier (2014)'])
+            ax.set_title('Field of {} boreholes'.format(len(field)))
+            plt.tight_layout()
 
-    return
+            # For the second borefield, draw the evolution of heat extraction rates
+            if i == 1:
+                gfunc.visualize_temperatures(iBoreholes=[18, 12, 14])
+                gfunc.visualize_temperature_profiles(iBoreholes=[14])
 
 
 # Main function

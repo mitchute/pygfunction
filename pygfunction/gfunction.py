@@ -2,7 +2,6 @@
 from time import perf_counter
 import warnings
 
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.cluster.hierarchy import cut_tree, dendrogram, linkage
 from scipy.constants import pi
@@ -334,6 +333,12 @@ class gFunction(object):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
+
         # Configure figure and axes
         fig = _initialize_figure()
         ax = fig.add_subplot(111)
@@ -399,6 +404,12 @@ class gFunction(object):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
+
         # If iBoreholes is None, then plot all boreholes
         if iBoreholes is None:
             iBoreholes = range(len(self.solver.boreholes))
@@ -513,7 +524,7 @@ class gFunction(object):
 
                 # Adjust figure to window
                 plt.tight_layout()
-            
+
         return fig
 
     def visualize_heat_extraction_rate_profiles(
@@ -548,6 +559,12 @@ class gFunction(object):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
+
         # If iBoreholes is None, then plot all boreholes
         if iBoreholes is None:
             iBoreholes = range(len(self.solver.boreholes))
@@ -692,6 +709,12 @@ class gFunction(object):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
+
         # If iBoreholes is None, then plot all boreholes
         if iBoreholes is None:
             iBoreholes = range(len(self.solver.boreholes))
@@ -837,6 +860,12 @@ class gFunction(object):
             Figure object (matplotlib).
 
         """
+
+        try:
+            import matplotlib.pyplot as plt
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
+
         # If iBoreholes is None, then plot all boreholes
         if iBoreholes is None:
             iBoreholes = range(len(self.boreholes))
@@ -960,7 +989,7 @@ class gFunction(object):
         Parameters
         ----------
         iBoreholes : list of int
-            Borehole indices to extract heat extration rates.
+            Borehole indices to extract heat extraction rates.
 
         Returns
         -------
@@ -1331,7 +1360,7 @@ def uniform_heat_extraction(boreholes, time, alpha, use_similarities=True,
 
     This function superimposes the finite line source (FLS) solution to
     estimate the g-function of a geothermal bore field. This boundary
-    condition correponds to *BC-I*, as defined by [#UHTR-CimBer2014]_.
+    condition corresponds to *BC-I*, as defined by [#UHTR-CimBer2014]_.
 
     Parameters
     ----------
@@ -1421,7 +1450,7 @@ def uniform_temperature(boreholes, time, alpha, nSegments=8,
     This function superimposes the finite line source (FLS) solution to
     estimate the g-function of a geothermal bore field. Each borehole is
     modeled as a series of finite line source segments. This boundary
-    condition correponds to *BC-III*, as defined by [#UBWT-CimBer2014]_.
+    condition corresponds to *BC-III*, as defined by [#UBWT-CimBer2014]_.
 
     Parameters
     ----------
@@ -2841,7 +2870,7 @@ class _Similarities(_BaseSolver):
         of thermal response factors, containing a copy of the matrix accessible
         by h_ij.y[:nSources,:nSources,:nt+1]. The first index along the
         third axis corresponds to time t=0. The interp1d object can be used to
-        obtain thermal response factors at any intermediat time by
+        obtain thermal response factors at any intermediate time by
         h_ij(t)[:nSources,:nSources].
 
         Attributes
@@ -3890,7 +3919,7 @@ class _Similarities(_BaseSolver):
             self, i_pair, j_pair, k_pair, borehole_to_borehole,
             borehole_to_borehole_indices):
         """
-        Return the maping of the unique segment-to-segment thermal response
+        Return the mapping of the unique segment-to-segment thermal response
         factors (h) to the complete h_ij array of the borefield, such that:
 
             h_ij[j_segment, i_segment, :nt] = h[:nt, l_segment, k_segment].T,
@@ -3938,7 +3967,7 @@ class _Similarities(_BaseSolver):
     def _map_segment_pairs_inclined(
             self, i_pair, j_pair, k_pair, borehole_to_borehole):
         """
-        Return the maping of the unique segment-to-segment thermal response
+        Return the mapping of the unique segment-to-segment thermal response
         factors (h) to the complete h_ij array of the borefield, such that:
 
             h_ij[j_segment, i_segment, :nt] = h[:nt, k_segment].T,
@@ -4293,7 +4322,7 @@ class _Equivalent(_BaseSolver):
         Parameters
         ----------
         tol : float
-            Tolerance on the temperature to identify the maxiumum number of
+            Tolerance on the temperature to identify the maximum number of
             equivalent boreholes.
             Default is 1e-6.
 
@@ -4633,7 +4662,7 @@ class _Equivalent(_BaseSolver):
 
     def _find_unique_distances(self, dis, indices):
         """
-        Find the number of occurences of each unique distances between pairs
+        Find the number of occurrences of each unique distances between pairs
         of boreholes.
 
         Parameters
@@ -4648,7 +4677,7 @@ class _Equivalent(_BaseSolver):
         dis : array
             Array of unique distances (in meters) in the bore field.
         wDis : array
-            Array of number of occurences of each unique distance for each
+            Array of number of occurrences of each unique distance for each
             pair of equivalent boreholes in indices.
 
         """
@@ -4810,4 +4839,3 @@ class _Equivalent(_BaseSolver):
                 [np.allclose(self.network.p[0]._Rd, pipe._Rd)
                  for pipe in self.network.p]), \
                 "All boreholes must have the same piping configuration."
-        return

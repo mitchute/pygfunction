@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.constants import pi
 from scipy.spatial.distance import pdist
@@ -1345,7 +1344,11 @@ def visualize_field(
         Figure object (matplotlib).
 
     """
-    from mpl_toolkits.mplot3d import Axes3D
+
+    try:
+        import matplotlib.pyplot as plt
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError("Visualization module not found. Install with `pip install pygfunction[viz]`.")
 
     # Configure figure and axes
     fig = _initialize_figure()

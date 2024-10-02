@@ -11,14 +11,19 @@
     compared.
 
 """
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+    enable_plotting = True
+except ModuleNotFoundError:
+    enable_plotting = False
+
 import numpy as np
 from scipy.constants import pi
 
 import pygfunction as gt
 
 
-def main():
+def main(make_plots=True):
     # -------------------------------------------------------------------------
     # Simulation parameters
     # -------------------------------------------------------------------------
@@ -74,7 +79,7 @@ def main():
     time = dt * np.arange(1, Nt+1)
 
     # Evaluate heat extraction rate
-    Q = synthetic_load(time/3600.)
+    Q = gt.utilities.synthetic_load(time/3600.)
 
     # Load aggregation scheme
     LoadAgg = gt.load_aggregation.ClaessonJaved(dt, tmax)
@@ -163,135 +168,109 @@ def main():
         T_f_out_double_ser[i] = DoubleUTube_ser.get_outlet_temperature(
                 T_f_in_double_ser[i],  T_b[i], m_flow, cp_f)
 
-    # -------------------------------------------------------------------------
-    # Plot hourly heat extraction rates and temperatures
-    # -------------------------------------------------------------------------
+    if enable_plotting and make_plots:
 
-    # Configure figure and axes
-    fig = gt.utilities._initialize_figure()
+        # -------------------------------------------------------------------------
+        # Plot hourly heat extraction rates and temperatures
+        # -------------------------------------------------------------------------
 
-    ax1 = fig.add_subplot(211)
-    # Axis labels
-    ax1.set_xlabel(r'Time [hours]')
-    ax1.set_ylabel(r'Total heat extraction rate [W]')
-    gt.utilities._format_axes(ax1)
+        # Configure figure and axes
+        fig = gt.utilities._initialize_figure()
 
-    # Plot heat extraction rates
-    hours = np.arange(1, Nt+1) * dt / 3600.
-    ax1.plot(hours, Q)
+        ax1 = fig.add_subplot(211)
+        # Axis labels
+        ax1.set_xlabel(r'Time [hours]')
+        ax1.set_ylabel(r'Total heat extraction rate [W]')
+        gt.utilities._format_axes(ax1)
 
-    ax2 = fig.add_subplot(212)
-    # Axis labels
-    ax2.set_xlabel(r'Time [hours]')
-    ax2.set_ylabel(r'Temperature [degC]')
-    gt.utilities._format_axes(ax2)
+        # Plot heat extraction rates
+        hours = np.arange(1, Nt+1) * dt / 3600.
+        ax1.plot(hours, Q)
 
-    # Plot temperatures
-    ax2.plot(hours, T_b, 'k-', lw=1.5, label='Borehole wall')
-    ax2.plot(hours, T_f_out_single, '--',
-             label='Outlet, single U-tube')
-    ax2.plot(hours, T_f_out_double_par, '-.',
-             label='Outlet, double U-tube (parallel)')
-    ax2.plot(hours, T_f_out_double_ser, ':',
-             label='Outlet, double U-tube (series)')
-    ax2.legend()
+        ax2 = fig.add_subplot(212)
+        # Axis labels
+        ax2.set_xlabel(r'Time [hours]')
+        ax2.set_ylabel(r'Temperature [degC]')
+        gt.utilities._format_axes(ax2)
 
-    # Adjust to plot window
-    plt.tight_layout()
+        # Plot temperatures
+        ax2.plot(hours, T_b, 'k-', lw=1.5, label='Borehole wall')
+        ax2.plot(hours, T_f_out_single, '--',
+                 label='Outlet, single U-tube')
+        ax2.plot(hours, T_f_out_double_par, '-.',
+                 label='Outlet, double U-tube (parallel)')
+        ax2.plot(hours, T_f_out_double_ser, ':',
+                 label='Outlet, double U-tube (series)')
+        ax2.legend()
 
-    # -------------------------------------------------------------------------
-    # Plot fluid temperature profiles
-    # -------------------------------------------------------------------------
+        # Adjust to plot window
+        plt.tight_layout()
 
-    # Evaluate temperatures at nz evenly spaced depths along the borehole
-    # at the (it+1)-th time step
-    nz = 20
-    it = 8724
-    z = np.linspace(0., H, num=nz)
-    T_f_single = SingleUTube.get_temperature(z,
-                                             T_f_in_single[it],
-                                             T_b[it],
-                                             m_flow,
-                                             cp_f)
-    T_f_double_par = DoubleUTube_par.get_temperature(z,
-                                                     T_f_in_double_par[it],
-                                                     T_b[it],
-                                                     m_flow,
-                                                     cp_f)
-    T_f_double_ser = DoubleUTube_ser.get_temperature(z,
-                                                     T_f_in_double_ser[it],
-                                                     T_b[it],
-                                                     m_flow,
-                                                     cp_f)
+        # -------------------------------------------------------------------------
+        # Plot fluid temperature profiles
+        # -------------------------------------------------------------------------
 
-    # Configure figure and axes
-    fig = gt.utilities._initialize_figure()
+        # Evaluate temperatures at nz evenly spaced depths along the borehole
+        # at the (it+1)-th time step
+        nz = 20
+        it = 8724
+        z = np.linspace(0., H, num=nz)
+        T_f_single = SingleUTube.get_temperature(z,
+                                                 T_f_in_single[it],
+                                                 T_b[it],
+                                                 m_flow,
+                                                 cp_f)
+        T_f_double_par = DoubleUTube_par.get_temperature(z,
+                                                         T_f_in_double_par[it],
+                                                         T_b[it],
+                                                         m_flow,
+                                                         cp_f)
+        T_f_double_ser = DoubleUTube_ser.get_temperature(z,
+                                                         T_f_in_double_ser[it],
+                                                         T_b[it],
+                                                         m_flow,
+                                                         cp_f)
 
-    ax3 = fig.add_subplot(131)
-    # Axis labels
-    ax3.set_xlabel(r'Temperature [degC]')
-    ax3.set_ylabel(r'Depth from borehole head [m]')
-    gt.utilities._format_axes(ax3)
+        # Configure figure and axes
+        fig = gt.utilities._initialize_figure()
 
-    # Plot temperatures
-    ax3.plot(np.array([T_b[it], T_b[it]]), np.array([0., H]), 'k--')
-    ax3.plot(T_f_single, z, 'b-')
-    ax3.legend(['Borehole wall', 'Fluid'])
+        ax3 = fig.add_subplot(131)
+        # Axis labels
+        ax3.set_xlabel(r'Temperature [degC]')
+        ax3.set_ylabel(r'Depth from borehole head [m]')
+        gt.utilities._format_axes(ax3)
 
-    ax4 = fig.add_subplot(132)
-    # Axis labels
-    ax4.set_xlabel(r'Temperature [degC]')
-    ax4.set_ylabel(r'Depth from borehole head [m]')
-    gt.utilities._format_axes(ax4)
+        # Plot temperatures
+        ax3.plot(np.array([T_b[it], T_b[it]]), np.array([0., H]), 'k--')
+        ax3.plot(T_f_single, z, 'b-')
+        ax3.legend(['Borehole wall', 'Fluid'])
 
-    # Plot temperatures
-    ax4.plot(T_f_double_par, z, 'b-')
-    ax4.plot(np.array([T_b[it], T_b[it]]), np.array([0., H]), 'k--')
+        ax4 = fig.add_subplot(132)
+        # Axis labels
+        ax4.set_xlabel(r'Temperature [degC]')
+        ax4.set_ylabel(r'Depth from borehole head [m]')
+        gt.utilities._format_axes(ax4)
 
-    ax5 = fig.add_subplot(133)
-    # Axis labels
-    ax5.set_xlabel(r'Temperature [degC]')
-    ax5.set_ylabel(r'Depth from borehole head [m]')
-    gt.utilities._format_axes(ax5)
+        # Plot temperatures
+        ax4.plot(T_f_double_par, z, 'b-')
+        ax4.plot(np.array([T_b[it], T_b[it]]), np.array([0., H]), 'k--')
 
-    # Plot temperatures
-    ax5.plot(T_f_double_ser, z, 'b-')
-    ax5.plot(np.array([T_b[it], T_b[it]]), np.array([0., H]), 'k--')
+        ax5 = fig.add_subplot(133)
+        # Axis labels
+        ax5.set_xlabel(r'Temperature [degC]')
+        ax5.set_ylabel(r'Depth from borehole head [m]')
+        gt.utilities._format_axes(ax5)
 
-    # Reverse y-axes
-    ax3.set_ylim(ax3.get_ylim()[::-1])
-    ax4.set_ylim(ax4.get_ylim()[::-1])
-    ax5.set_ylim(ax5.get_ylim()[::-1])
-    # Adjust to plot window
-    plt.tight_layout()
+        # Plot temperatures
+        ax5.plot(T_f_double_ser, z, 'b-')
+        ax5.plot(np.array([T_b[it], T_b[it]]), np.array([0., H]), 'k--')
 
-    return
-
-
-def synthetic_load(x):
-    """
-    Synthetic load profile of Bernier et al. (2004).
-
-    Returns load y (in watts) at time x (in hours).
-    """
-    A = 2000.0
-    B = 2190.0
-    C = 80.0
-    D = 2.0
-    E = 0.01
-    F = 0.0
-    G = 0.95
-
-    func = (168.0-C)/168.0
-    for i in [1, 2, 3]:
-        func += 1.0/(i*pi)*(np.cos(C*pi*i/84.0)-1.0) \
-                          *(np.sin(pi*i/84.0*(x-B)))
-    func = func*A*np.sin(pi/12.0*(x-B)) \
-           *np.sin(pi/4380.0*(x-B))
-
-    y = func + (-1.0)**np.floor(D/8760.0*(x-B))*abs(func) \
-      + E*(-1.0)**np.floor(D/8760.0*(x-B))/np.sign(np.cos(D*pi/4380.0*(x-F))+G)
-    return -y
+        # Reverse y-axes
+        ax3.set_ylim(ax3.get_ylim()[::-1])
+        ax4.set_ylim(ax4.get_ylim()[::-1])
+        ax5.set_ylim(ax5.get_ylim()[::-1])
+        # Adjust to plot window
+        plt.tight_layout()
 
 
 # Main function
