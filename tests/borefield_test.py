@@ -258,6 +258,26 @@ def test_gfunctions_inclined_UBWT(two_boreholes_inclined, method, opts, expected
         alpha, time, method=method, options=options, boundary_condition='UBWT')
     assert np.allclose(gFunc, expected)
 
+@pytest.mark.parametrize("field, method, opts, expected", [
+        #  'equivalent' solver - unequal segments
+        ('single_borehole', 'similarities', 'unequal_segments', np.array([5.61855789, 6.41336758, 6.66933682])),
+    ])
+def test_gfunctions_MIFT(field, method, opts, expected, request):
+    # Extract the bore field from the fixture
+    borefield = request.getfixturevalue(field)
+    # Extract the g-function options from the fixture
+    options = request.getfixturevalue(opts)
+    # Mean borehole length [m]
+    H_mean = np.mean(borefield.H)
+    alpha = 1e-6    # Ground thermal diffusivity [m2/s]
+    # Bore field characteristic time [s]
+    ts = H_mean**2 / (9 * alpha)
+    # Times for the g-function [s]
+    time = np.array([0.1, 1., 10.]) * ts
+    # g-Function
+    gFunc = borefield.evaluate_g_function(
+        alpha, time, method=method, options=options, boundary_condition='MIFT')
+    assert np.allclose(gFunc, expected)
 
 # =============================================================================
 # Test borefield creation methods

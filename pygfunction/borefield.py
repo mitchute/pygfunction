@@ -9,7 +9,7 @@ import numpy.typing as npt
 
 from .boreholes import Borehole
 from .utilities import _initialize_figure, _format_axes, _format_axes_3d
-
+from .networks import Network
 
 class Borefield:
     """
@@ -115,7 +115,10 @@ class Borefield:
             time: npt.ArrayLike,
             method: str = "equivalent",
             boundary_condition: str = "UBWT",
-            options: Union[Dict[str, str], None] = None):
+            options: Union[Dict[str, str], None] = None,
+            m_flow_borehole=None,
+            cp_f=None
+    ):
         """
         Evaluate the g-function of the bore field.
 
@@ -160,8 +163,14 @@ class Borefield:
                     **Uniform borehole wall temperature**. This corresponds to
                     boundary condition *BC-III* as defined by Cimmino and
                     Bernier (2014) [#borefield-CimBer2014]_.
+                - 'MIFT' :
+                    **Mixed inlet fluid temperatures**. This boundary condition was
+                    introduced by Cimmino (2015) [#gFunction-Cimmin2015]_ for
+                    parallel-connected boreholes and extended to mixed
+                    configurations by Cimmino (2019) [#gFunction-Cimmin2019]_.
 
             Default is 'UBWT'.
+
         options : dict, optional
             A dictionary of solver options. All methods accept the following
             generic options:
@@ -295,14 +304,32 @@ class Borefield:
         if options is None:
             options = {}
 
-        gfunc = gFunction(
-            self,
-            alpha,
-            time=time,
-            method=method,
-            boundary_condition=boundary_condition,
-            options=options,
-        )
+        if boundary_condition.upper() in ['UHTR', 'UBWT']:
+            gfunc = gFunction(
+                self,
+                alpha,
+                time=time,
+                method=method,
+                boundary_condition=boundary_condition,
+                options=options,
+            )
+        elif boundary_condition.upper() == 'MIFT':
+            if m_flow_borehole is None or cp_f is None:
+                raise ValueError('m_flow_network and cp_f cannot be None')
+            boreholes = self.to_boreholes()
+            nbh = len(boreholes)
+            m_flow_network = nbh * m_flow_borehole
+            network = Network(self, self.to_boreholes(), m_flow_network=m_flow_network, cp_f=cp_f)
+            gfunc = gFunction(
+                network,
+                alpha,
+                time=time,
+                method=method,
+                boundary_condition=boundary_condition,
+                options=options,
+            )
+        else:
+            raise ValueError('Unknown boundary condition {}'.format(boundary_condition))
 
         return gfunc.gFunc
 
