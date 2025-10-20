@@ -115,9 +115,10 @@ class Network(object):
                            k_p: Union[float, tuple, npt.ArrayLike],
                            m_flow_network: float,
                            epsilon: float,
-                           fluid_str: str,
-                           fluid_concentraton_percent: float,
-                           fluid_temperature: float,
+                           fluid_cp: float,
+                           fluid_mu: float,
+                           fluid_rho: float,
+                           fluid_k: float,
                            reversible_flow: bool = True,
                            bore_connectivity: list = None,
                            J: int = 2):
@@ -147,21 +148,14 @@ class Network(object):
             Fluid mass flow rate into the network of boreholes (in kg/s).
         epsilon : float
             Pipe roughness (in meters).
-        fluid_str: str
-            The mixer for this application should be one of:
-
-                - 'Water' - Complete water solution
-                - 'MEG' - Ethylene glycol mixed with water
-                - 'MPG' - Propylene glycol mixed with water
-                - 'MEA' - Ethanol mixed with water
-                - 'MMA' - Methanol mixed with water
-
-        fluid_concentration_pct: float
-            Mass fraction of the mixing fluid added to water (in %).
-            Lower bound = 0. Upper bound is dependent on the mixture.
-        fluid_temperature: float, optional
-            Temperature used for evaluating fluid properties (in degC).
-            Default is 20.
+        fluid_cp : float
+            Fluid specific heat (in J/kg-K).
+        fluid_mu : float
+            Fluid dynamic viscosity (in Pa-s).
+        fluid_rho : float
+            Fluid density (in kg/m^3).
+        fluid_k : float
+            Fluid conductivity (in W/m-K).
         reversible_flow : bool, optional
             True to treat a negative mass flow rate as the reversal of flow
             direction within the borehole. If False, the direction of flow is not
@@ -197,12 +191,11 @@ class Network(object):
 
         # Pipe and fluid types
         pipe_type = PipeType[pipe_type_str.upper()]
-        fluid = Fluid(fluid_str, fluid_concentraton_percent, fluid_temperature)
 
         if pipe_type == PipeType.SINGLE_UTUBE:
             # Single U-tube borehole
             R_fp = fluid_to_pipe_thermal_resistance(
-                pipe_type, m_flow_borehole, r_in, r_out, k_p, epsilon, fluid)
+                pipe_type, m_flow_borehole, r_in, r_out, k_p, epsilon, fluid_cp, fluid_mu, fluid_rho, fluid_k)
             pipes = [
                 SingleUTube(
                     pos, r_in, r_out, borehole, k_s, k_g, R_fp, J, reversible_flow)
@@ -212,7 +205,7 @@ class Network(object):
         elif pipe_type == PipeType.DOUBLE_UTUBE_PARALLEL:
             # Double U-tube borehole (parallel)
             R_fp = fluid_to_pipe_thermal_resistance(
-                pipe_type, m_flow_borehole, r_in, r_out, k_p, epsilon, fluid)
+                pipe_type, m_flow_borehole, r_in, r_out, k_p, epsilon, fluid_cp, fluid_mu, fluid_rho, fluid_k)
             pipes = [
                 MultipleUTube(
                     pos, r_in, r_out, borehole, k_s, k_g, R_fp, 2, 'parallel', J, reversible_flow)
@@ -222,7 +215,7 @@ class Network(object):
         elif pipe_type == PipeType.DOUBLE_UTUBE_SERIES:
             # Double U-tube borehole (series)
             R_fp = fluid_to_pipe_thermal_resistance(
-                pipe_type, m_flow_borehole, r_in, r_out, k_p, epsilon, fluid)
+                pipe_type, m_flow_borehole, r_in, r_out, k_p, epsilon, fluid_cp, fluid_mu, fluid_rho, fluid_k)
             pipes = [
                 MultipleUTube(
                     pos, r_in, r_out, borehole, k_s, k_g, R_fp, 2, 'series', J, reversible_flow)
@@ -232,9 +225,9 @@ class Network(object):
         elif pipe_type in [PipeType.COAXIAL_ANNULAR_IN, PipeType.COAXIAL_ANNULAR_OUT]:
             # Coaxial borehole
             R_fp = fluid_to_pipe_thermal_resistance(
-                pipe_type, m_flow_borehole, r_in, r_out, k_p, epsilon, fluid)
+                pipe_type, m_flow_borehole, r_in, r_out, k_p, epsilon, fluid_cp, fluid_mu, fluid_rho, fluid_k)
             R_ff = fluid_to_fluid_thermal_resistance(
-                pipe_type, m_flow_borehole, r_in, r_out, k_p, epsilon, fluid)
+                pipe_type, m_flow_borehole, r_in, r_out, k_p, epsilon, fluid_cp, fluid_mu, fluid_rho, fluid_k)
             pipes = [
                 Coaxial(
                     pos, np.array(r_in), np.array(r_out), borehole, k_s, k_g, R_ff, R_fp, J, reversible_flow)
@@ -245,7 +238,7 @@ class Network(object):
             raise ValueError(f"Unsupported pipe_type: '{pipe_type_str}'")
 
         return cls(boreholes=boreholes, pipes=pipes, m_flow_network=m_flow_network, bore_connectivity=bore_connectivity,
-                   cp_f=fluid.cp)
+                   cp_f=fluid_cp)
 
     def get_inlet_temperature(
             self, T_f_in, T_b, m_flow_network, cp_f, nSegments,

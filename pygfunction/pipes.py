@@ -3622,7 +3622,7 @@ def fluid_to_pipe_thermal_resistance(
         pipe_type: PipeType, m_flow_borehole: float,
         r_in: Union[float, tuple, npt.ArrayLike], r_out: Union[float, tuple, npt.ArrayLike],
         k_p: Union[float, tuple, npt.ArrayLike], epsilon: float,
-        fluid: Fluid) -> float:
+        fluid_cp: float, fluid_mu: float, fluid_rho: float, fluid_k: float) -> float:
     """
     Computes the fluid to pipe thermal resistance.
 
@@ -3641,8 +3641,14 @@ def fluid_to_pipe_thermal_resistance(
         Pipe thermal conductivity (in W/m-K).
     epsilon : float
         Pipe roughness (in meters).
-    fluid : Fluid
-        'Fluid' class object. Used for evaluating fluid properties
+    fluid_cp : float
+        Fluid specific heat (in J/kg-K).
+    fluid_mu : float
+        Fluid dynamic viscosity (in Pa-s).
+    fluid_rho : float
+        Fluid density (in kg/m^3).
+    fluid_k : float
+        Fluid conductivity (in W/m-K).
 
     Returns
     -------
@@ -3661,7 +3667,7 @@ def fluid_to_pipe_thermal_resistance(
             r_in, r_out, k_p)
         # Convection heat transfer coefficient [W/m2.K]
         h_f = convective_heat_transfer_coefficient_circular_pipe(
-            m_flow_pipe, r_in, fluid.mu, fluid.rho, fluid.k, fluid.cp,
+            m_flow_pipe, r_in, fluid_mu, fluid_rho, fluid_k, fluid_cp,
             epsilon)
         # Film thermal resistance [m.K/W]
         R_f = 1.0 / (h_f * 2 * np.pi * r_in)
@@ -3678,7 +3684,7 @@ def fluid_to_pipe_thermal_resistance(
             r_in, r_out, k_p)
         # Convection heat transfer coefficient [W/m2.K]
         h_f = convective_heat_transfer_coefficient_circular_pipe(
-            m_flow_pipe, r_in, fluid.mu, fluid.rho, fluid.k, fluid.cp,
+            m_flow_pipe, r_in, fluid_mu, fluid_rho, fluid_k, fluid_cp,
             epsilon)
         # Film thermal resistance [m.K/W]
         R_f = 1.0 / (h_f * 2 * np.pi * r_in)
@@ -3703,8 +3709,8 @@ def fluid_to_pipe_thermal_resistance(
         # Outer pipe
         h_f_a_in, h_f_a_out = \
             convective_heat_transfer_coefficient_concentric_annulus(
-                m_flow_pipe, r_in_out, r_out_in, fluid.mu, fluid.rho, fluid.k,
-                fluid.cp, epsilon)
+                m_flow_pipe, r_in_out, r_out_in, fluid_mu, fluid_rho, fluid_k,
+                fluid_cp, epsilon)
 
         # Coaxial GHE in borehole
         R_f_out_out = 1.0 / (h_f_a_out * 2 * np.pi * r_out_in)
@@ -3729,8 +3735,8 @@ def fluid_to_pipe_thermal_resistance(
         # Outer pipe
         h_f_a_in, h_f_a_out = \
             convective_heat_transfer_coefficient_concentric_annulus(
-                m_flow_pipe, r_in_out, r_out_in, fluid.mu, fluid.rho, fluid.k,
-                fluid.cp, epsilon)
+                m_flow_pipe, r_in_out, r_out_in, fluid_mu, fluid_rho, fluid_k,
+                fluid_cp, epsilon)
 
         # Coaxial GHE in borehole
         R_f_out_out = 1.0 / (h_f_a_out * 2 * np.pi * r_out_in)
@@ -3745,7 +3751,7 @@ def fluid_to_fluid_thermal_resistance(pipe_type: PipeType, m_flow_borehole: floa
                                       r_in: Union[float, tuple, npt.ArrayLike],
                                       r_out: Union[float, tuple, npt.ArrayLike],
                                       k_p: Union[float, tuple, npt.ArrayLike], epsilon: float,
-                                      fluid: Fluid) -> float:
+                                      fluid_cp: float, fluid_mu: float, fluid_rho: float, fluid_k: float) -> float:
     """
     Computes the fluid to fluid thermal resistance.
 
@@ -3764,8 +3770,14 @@ def fluid_to_fluid_thermal_resistance(pipe_type: PipeType, m_flow_borehole: floa
         Pipe thermal conductivity (in W/m-K).
     epsilon : float
         Pipe roughness (in meters).
-    fluid : Fluid
-        'Fluid' class object. Used for evaluating fluid properties
+    fluid_cp : float
+        Fluid specific heat (in J/kg-K).
+    fluid_mu : float
+        Fluid dynamic viscosity (in Pa-s).
+    fluid_rho : float
+        Fluid density (in kg/m^3).
+    fluid_k : float
+        Fluid conductivity (in W/m-K).
 
     Returns
     -------
@@ -3792,14 +3804,14 @@ def fluid_to_fluid_thermal_resistance(pipe_type: PipeType, m_flow_borehole: floa
         # Fluid-to-fluid thermal resistance [m.K/W]
         # Inner pipe
         h_f_in = convective_heat_transfer_coefficient_circular_pipe(
-            m_flow_pipe, r_in_in, fluid.mu, fluid.rho, fluid.k, fluid.cp, epsilon)
+            m_flow_pipe, r_in_in, fluid_mu, fluid_rho, fluid_k, fluid_cp, epsilon)
         R_f_in = 1.0 / (h_f_in * 2 * np.pi * r_in_in)
 
         # Outer pipe
         h_f_a_in, h_f_a_out = \
             convective_heat_transfer_coefficient_concentric_annulus(
-                m_flow_borehole, r_in_out, r_out_in, fluid.mu, fluid.rho, fluid.k,
-                fluid.cp, epsilon)
+                m_flow_borehole, r_in_out, r_out_in, fluid_mu, fluid_rho, fluid_k,
+                fluid_cp, epsilon)
         R_f_out_in = 1.0 / (h_f_a_in * 2 * np.pi * r_in_out)
 
         return R_f_in + R_p_in + R_f_out_in
@@ -3823,14 +3835,14 @@ def fluid_to_fluid_thermal_resistance(pipe_type: PipeType, m_flow_borehole: floa
         # Fluid-to-fluid thermal resistance [m.K/W]
         # Inner pipe
         h_f_in = convective_heat_transfer_coefficient_circular_pipe(
-            m_flow_pipe, r_in_in, fluid.mu, fluid.rho, fluid.k, fluid.cp, epsilon)
+            m_flow_pipe, r_in_in, fluid_mu, fluid_rho, fluid_k, fluid_cp, epsilon)
         R_f_in = 1.0 / (h_f_in * 2 * np.pi * r_in_in)
 
         # Outer pipe
         h_f_a_in, h_f_a_out = \
             convective_heat_transfer_coefficient_concentric_annulus(
-                m_flow_pipe, r_in_out, r_out_in, fluid.mu, fluid.rho, fluid.k,
-                fluid.cp, epsilon)
+                m_flow_pipe, r_in_out, r_out_in, fluid_mu, fluid_rho, fluid_k,
+                fluid_cp, epsilon)
         R_f_out_in = 1.0 / (h_f_a_in * 2 * np.pi * r_in_out)
 
         return R_f_in + R_p_in + R_f_out_in

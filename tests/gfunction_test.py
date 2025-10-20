@@ -296,8 +296,6 @@ def test_gfunctions_MIFT(
     k_g = 1.0
     k_p = 0.4
     epsilon = 1e-6
-    fluid_name = 'MPG'
-    fluid_pct = 20.
 
     # Extract the pipe options from the fixture
     pipe = network.p[0]
@@ -317,8 +315,10 @@ def test_gfunctions_MIFT(
         method=method,
         boundary_condition='MIFT',
         m_flow_network=m_flow_network,
-        fluid_str=fluid_name,
-        fluid_concentration_pct=fluid_pct,
+        fluid_cp=fluid.cp,
+        fluid_mu=fluid.mu,
+        fluid_rho=fluid.rho,
+        fluid_k=fluid.k,
         pipe_type_str='single_utube',
         pos=pos,
         r_in=r_in,
@@ -569,6 +569,8 @@ def test_gfunctions_from_static_params(field, boundary_condition, method, opts, 
     fluid_name = 'MPG'
     fluid_pct = 20.
 
+    fluid = gt.media.Fluid(fluid_str=fluid_name, percent=fluid_pct)
+
     # Mean borehole length [m]
     H_mean = np.mean(H)
     alpha = 1e-6  # Ground thermal diffusivity [m2/s]
@@ -587,8 +589,10 @@ def test_gfunctions_from_static_params(field, boundary_condition, method, opts, 
         k_s=k_s,
         k_g=k_g,
         epsilon=epsilon,
-        fluid_str=fluid_name,
-        fluid_concentration_pct=fluid_pct,
+        fluid_cp=fluid.cp,
+        fluid_mu=fluid.mu,
+        fluid_rho=fluid.rho,
+        fluid_k=fluid.k,
         pos=pos,
         r_in=r_in,
         r_out=r_out,

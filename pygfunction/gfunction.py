@@ -307,9 +307,10 @@ class gFunction(object):
                            k_s: float = None,
                            k_g: float = None,
                            k_p: Union[float, tuple, npt.ArrayLike] = None,
-                           fluid_str: str = None,
-                           fluid_concentration_pct: float = None,
-                           fluid_temperature: float = 20,
+                           fluid_cp: float = 4182,
+                           fluid_mu: float = 0.001,
+                           fluid_rho: float = 998,
+                           fluid_k: float = 0.598,
                            epsilon: float = None,
                            reversible_flow: bool = True,
                            bore_connectivity: list = None,
@@ -370,21 +371,14 @@ class gFunction(object):
             Grout thermal conductivity (in W/m-K).
         k_p : float, optional
             Pipe thermal conductivity (in W/m-K).
-        fluid_str: str, optional
-            The mixer for this application should be one of:
-
-                - 'Water' - Complete water solution
-                - 'MEG' - Ethylene glycol mixed with water
-                - 'MPG' - Propylene glycol mixed with water
-                - 'MEA' - Ethanol mixed with water
-                - 'MMA' - Methanol mixed with water
-
-        fluid_concentration_pct: float, optional
-            Mass fraction of the mixing fluid added to water (in %).
-            Lower bound = 0. Upper bound is dependent on the mixture.
-        fluid_temperature: float, optional
-            Temperature used for evaluating fluid properties (in degC).
-            Default is 20.
+        fluid_cp : float
+            Fluid specific heat (in J/kg-K).
+        fluid_mu : float
+            Fluid dynamic viscosity (in Pa-s).
+        fluid_rho : float
+            Fluid density (in kg/m^3).
+        fluid_k : float
+            Fluid conductivity (in W/m-K).
         epsilon : float, optional
             Pipe roughness (in meters).
         reversible_flow : bool, optional
@@ -425,7 +419,7 @@ class gFunction(object):
 
         if boundary_condition.upper() == 'MIFT':
             boreholes = borefield.to_boreholes()
-            cp_f = Fluid(fluid_str, fluid_concentration_pct).cp
+            cp_f = fluid_cp
             boreholes_or_network= Network.from_static_params(
                 boreholes,
                 pipe_type_str,
@@ -437,9 +431,10 @@ class gFunction(object):
                 k_p,
                 m_flow_network,
                 epsilon,
-                fluid_str,
-                fluid_concentration_pct,
-                fluid_temperature,
+                fluid_cp,
+                fluid_mu,
+                fluid_rho,
+                fluid_k,
                 reversible_flow,
                 bore_connectivity,
                 J,
